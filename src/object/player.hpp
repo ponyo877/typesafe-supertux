@@ -137,6 +137,8 @@ public:
   void make_temporarily_safe(float safe_time);
 
   inline bool is_invincible() const { return m_invincible_timer.started(); }
+  /** Blinking after getting hurt, so badguys pass through. */
+  inline bool is_recovering() const { return m_post_damage_safety_timer.started(); }
   inline bool is_dying() const { return m_dying; }
 
   /**

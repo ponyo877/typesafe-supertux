@@ -43,4 +43,7 @@
 
 #cmakedefine REMOVE_QUIT_BUTTON
 
+#cmakedefine SINGLE_LEVEL_BUILD
+#define SINGLE_LEVEL_PATH "${SINGLE_LEVEL_PATH}"
+
 #endif /*CONFIG_H*/

@@ -1090,6 +1090,43 @@ BadGuy::get_nearest_player() const
 }
 
 void
+BadGuy::set_jev_order(JevOrder order, float ttl)
+{
+  m_jev_order = order;
+  m_jev_order_timer.start(ttl);
+}
+
+JevOrder
+BadGuy::get_jev_order() const
+{
+  return m_jev_order_timer.started() ? m_jev_order : JevOrder::DEFAULT;
+}
+
+bool
+BadGuy::jev_spikes_at(float x) const
+{
+  // Look down the column at x, from our feet to three tiles below. Only the
+  // first thing there counts: spikes buried under the ground (there are
+  // plenty) are harmless.
+  const float bottom = m_col.m_bbox.get_bottom();
+  for (float y = bottom - 16.f; y < bottom + 3 * 32.f; y += 16.f)
+  {
+    const Rectf probe(x - 8.f, y, x + 8.f, y + 16.f);
+    if (!Sector::get().is_free_of_tiles(probe, true, Tile::HURTS))
+      return true;
+    if (!Sector::get().is_free_of_tiles(probe, true))
+      return false;
+  }
+  return false;
+}
+
+bool
+BadGuy::jev_spikes_ahead(bool left) const
+{
+  return jev_spikes_at(left ? m_col.m_bbox.get_left() - 8.f : m_col.m_bbox.get_right() + 8.f);
+}
+
+void
 BadGuy::update_on_ground_flag(const CollisionHit& hit)
 {
   if (hit.bottom) {

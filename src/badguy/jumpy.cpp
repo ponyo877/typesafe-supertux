@@ -88,15 +88,83 @@ Jumpy::hit(const CollisionHit& chit)
     pos_groundhit = get_pos();
     groundhit_pos_set = true;
 
-    m_physic.set_velocity_y((m_frozen || get_state() != STATE_ACTIVE) ? 0 : JUMPYSPEED);
+    if (m_frozen || get_state() != STATE_ACTIVE)
+    {
+      m_physic.set_velocity(0.f, 0.f);
+    }
+    else
+    {
+      const Vector hop = jev_hop();
+      m_physic.set_velocity(hop.x, hop.y);
+    }
     // TODO: Create a suitable sound for this...
     // SoundManager::current()->play("sounds/skid.wav", get_pos());
     update_on_ground_flag(chit);
   } else if (chit.top) {
     m_physic.set_velocity_y(0);
+  } else if (chit.left || chit.right) {
+    m_physic.set_velocity_x(0);
   }
 
   return CONTINUE;
+}
+
+bool
+Jumpy::can_follow_jev_orders() const
+{
+  return (jev_options() & JEV_OPT_JUMPY) && is_active() && !m_frozen;
+}
+
+Vector
+Jumpy::jev_hop() const
+{
+  const JevOrder order = can_follow_jev_orders() ? get_jev_order() : JevOrder::DEFAULT;
+  const Player* player = get_nearest_player();
+  if (order == JevOrder::DEFAULT || !player)
+    return Vector(0.f, JUMPYSPEED);
+
+  const float dx = player->get_bbox().get_middle().x - get_bbox().get_middle().x;
+  const float towards = (dx < 0.f) ? -1.f : 1.f;
+  const float scale = jev_speed_scale();
+  // A hop of -450 lasts 0.9 s, one of -750 lasts 1.5 s.
+  Vector hop(0.f, -450.f);
+  switch (order)
+  {
+    case JevOrder::SPECIAL: // come down right on the player
+      hop = Vector(std::clamp(dx / 1.5f, -250.f, 250.f) * scale, -750.f);
+      break;
+    case JevOrder::JUMP:
+      hop.y = -750.f;
+      break;
+    case JevOrder::RETREAT:
+      hop.x = -towards * 150.f * scale;
+      break;
+    case JevOrder::HOLD:
+    case JevOrder::AMBUSH:
+      hop.y = -350.f;
+      break;
+    case JevOrder::STALK:
+      if (std::abs(dx) < JEV_STALK_MIN)
+        hop.x = -towards * 120.f * scale;
+      else if (std::abs(dx) > JEV_STALK_MAX)
+        hop.x = towards * 120.f * scale;
+      break;
+    case JevOrder::INTERCEPT:
+    {
+      const float to_landing = jev_predict_landing_x(*player, get_bbox().get_bottom()) - get_bbox().get_middle().x;
+      hop.x = std::clamp(to_landing / 0.9f, -200.f, 200.f) * scale;
+      break;
+    }
+    default: // CHARGE, FLANK
+      hop.x = towards * 170.f * scale;
+      break;
+  }
+
+  // Never hop into a spike pit.
+  const float flight = -2.f * hop.y / 1000.f;
+  if (hop.x != 0.f && jev_spikes_at(get_bbox().get_middle().x + hop.x * flight))
+    hop.x = 0.f;
+  return hop;
 }
 
 void

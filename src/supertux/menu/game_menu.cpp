@@ -16,6 +16,8 @@
 
 #include "supertux/menu/game_menu.hpp"
 
+#include <config.h>
+
 #include "audio/sound_manager.hpp"
 #include "editor/editor.hpp"
 #include "gui/dialog.hpp"
@@ -77,6 +79,11 @@ GameMenu::GameMenu() :
 #endif
 
   add_submenu(_("Options"), MenuStorage::INGAME_OPTIONS_MENU);
+#ifdef SINGLE_LEVEL_BUILD
+  // There is nothing to abort to when the level was launched on its own
+  if (GameSession::current()->is_standalone())
+    return;
+#endif
   add_hl();
   add_entry(MNID_ABORTLEVEL, _("Abort Level"));
 }

@@ -16,9 +16,13 @@
 
 #include "badguy/walking_badguy.hpp"
 
+#include <algorithm>
 #include <math.h>
 
+#include "object/player.hpp"
 #include "sprite/sprite.hpp"
+#include "supertux/sector.hpp"
+#include "supertux/tile.hpp"
 
 // Ice physics constant (identical to player ice physics)
 static const float BADGUY_ICE_ACCELERATION_MULTIPLIER = 0.25f;
@@ -36,7 +40,12 @@ WalkingBadguy::WalkingBadguy(const Vector& pos,
   max_drop_height(-1),
   turn_around_timer(),
   turn_around_counter(),
-  m_stay_on_platform_overridden(false)
+  m_stay_on_platform_overridden(false),
+  m_jev_jump_pending(false),
+  m_jev_pursuing(false),
+  m_jev_flank_left(false),
+  m_jev_dodge_timer(),
+  m_jev_dodge_left(false)
 {
 }
 
@@ -54,7 +63,12 @@ WalkingBadguy::WalkingBadguy(const Vector& pos,
   max_drop_height(-1),
   turn_around_timer(),
   turn_around_counter(),
-  m_stay_on_platform_overridden(false)
+  m_stay_on_platform_overridden(false),
+  m_jev_jump_pending(false),
+  m_jev_pursuing(false),
+  m_jev_flank_left(false),
+  m_jev_dodge_timer(),
+  m_jev_dodge_left(false)
 {
 }
 
@@ -71,7 +85,12 @@ WalkingBadguy::WalkingBadguy(const ReaderMapping& reader,
   max_drop_height(-1),
   turn_around_timer(),
   turn_around_counter(),
-  m_stay_on_platform_overridden(false)
+  m_stay_on_platform_overridden(false),
+  m_jev_jump_pending(false),
+  m_jev_pursuing(false),
+  m_jev_flank_left(false),
+  m_jev_dodge_timer(),
+  m_jev_dodge_left(false)
 {
 }
 
@@ -183,7 +202,218 @@ WalkingBadguy::active_update(float dt_sec, float dest_x_velocity, float modifier
 void
 WalkingBadguy::active_update(float dt_sec)
 {
+  if (jev_update(dt_sec))
+    return;
+
   active_update (dt_sec, (m_dir == Direction::LEFT) ? -walk_speed : +walk_speed);
+}
+
+void
+WalkingBadguy::set_jev_order(JevOrder order, float ttl)
+{
+  if (order == JevOrder::FLANK && get_jev_order() != JevOrder::FLANK)
+  {
+    // Go around the player: past them, whichever side they are on now.
+    if (const Player* player = get_nearest_player())
+      m_jev_flank_left = player->get_bbox().get_middle().x < get_bbox().get_middle().x;
+  }
+
+  BadGuy::set_jev_order(order, ttl);
+  if (order == JevOrder::JUMP)
+    m_jev_jump_pending = true;
+  if (jev_options() & JEV_OPT_PURSUIT)
+    m_jev_pursuing = true;
+}
+
+bool
+WalkingBadguy::can_follow_jev_orders() const
+{
+  return is_active() && !m_frozen;
+}
+
+bool
+WalkingBadguy::always_active() const
+{
+  return m_jev_pursuing && (jev_options() & JEV_OPT_PURSUIT);
+}
+
+bool
+WalkingBadguy::jev_in_control() const
+{
+  return get_jev_order() != JevOrder::DEFAULT || always_active();
+}
+
+bool
+WalkingBadguy::jev_stomp_imminent(const Player& player) const
+{
+  const Rectf& me = get_bbox();
+  const Rectf& tux = player.get_bbox();
+  const float vy = player.get_velocity_y();
+  if (player.on_ground() || vy <= 0.f || tux.get_bottom() > me.get_top() + 16.f)
+    return false;
+
+  const float t = (me.get_top() - tux.get_bottom()) / vy;
+  if (t > JEV_STOMP_WARNING)
+    return false;
+  const float x = tux.get_middle().x + player.get_velocity_x() * t;
+  return std::abs(x - me.get_middle().x) < (me.get_width() + tux.get_width()) / 2.f + 4.f;
+}
+
+void
+WalkingBadguy::jev_stand(float dt_sec, Direction facing)
+{
+  // A target velocity of 0 results in an acceleration of 0, so stop by hand.
+  m_physic.set_velocity_x(0.f);
+  if (m_dir != facing)
+  {
+    m_dir = facing;
+    set_action(m_dir == Direction::LEFT ? walk_left_action : walk_right_action, /* loops = */ -1);
+  }
+  // Facing a ledge must not turn us around, over and over until we get dizzy.
+  m_stay_on_platform_overridden = true;
+  active_update(dt_sec, 0.f);
+}
+
+void
+WalkingBadguy::jev_run(float dt_sec, bool left, float speed)
+{
+  // Charging into a spike pit is not a tactic.
+  if (on_ground() && jev_spikes_ahead(left))
+  {
+    jev_stand(dt_sec, left ? Direction::LEFT : Direction::RIGHT);
+    return;
+  }
+
+  if (m_jev_jump_pending && on_ground())
+  {
+    m_physic.set_velocity_y(-JEV_JUMP_SPEED);
+    m_jev_jump_pending = false;
+  }
+
+  // Don't let a ledge break off the chase.
+  m_stay_on_platform_overridden = true;
+  active_update(dt_sec, left ? -speed : speed, JEV_ACCELERATION_MODIFIER);
+}
+
+bool
+WalkingBadguy::jev_special(float, const Player&)
+{
+  return false;
+}
+
+bool
+WalkingBadguy::jev_update(float dt_sec)
+{
+  // E.g. a rolling Igel or a flipped Snail runs its course.
+  if (!can_follow_jev_orders())
+    return false;
+
+  const bool pursuing = always_active();
+  JevOrder order = get_jev_order();
+  // Keep chasing while the model looks after the badguys nearer the player.
+  if (order == JevOrder::DEFAULT && pursuing)
+    order = JevOrder::CHARGE;
+  if (order == JevOrder::DEFAULT)
+    return false;
+
+  const Player* player = get_nearest_player();
+  if (!player)
+    return false;
+
+  const Rectf& me = get_bbox();
+  const Rectf& tux = player->get_bbox();
+  const float dx = tux.get_middle().x - me.get_middle().x;
+  const bool player_left = dx < 0.f;
+  const Direction towards = player_left ? Direction::LEFT : Direction::RIGHT;
+  float speed = std::max(walk_speed, JEV_RUN_SPEED * jev_speed_scale());
+  if (pursuing && is_offscreen())
+    speed = std::max(speed, JEV_CATCHUP_SPEED * jev_speed_scale());
+
+  // Get out from under a stomp without waiting for the model.
+  if ((jev_options() & JEV_OPT_REFLEX) && order != JevOrder::RETREAT)
+  {
+    if (!m_jev_dodge_timer.started() && jev_stomp_imminent(*player))
+    {
+      m_jev_dodge_left = tux.get_middle().x + player->get_velocity_x() * JEV_STOMP_WARNING > me.get_middle().x;
+      m_jev_dodge_timer.start(JEV_DODGE_TIME);
+    }
+    if (m_jev_dodge_timer.started())
+    {
+      jev_run(dt_sec, m_jev_dodge_left, speed * 1.3f);
+      return true;
+    }
+  }
+
+  switch (order)
+  {
+    case JevOrder::HOLD:
+      jev_stand(dt_sec, towards);
+      break;
+
+    case JevOrder::RETREAT:
+      jev_run(dt_sec, !player_left, speed);
+      break;
+
+    case JevOrder::AMBUSH:
+      if (std::abs(dx) < JEV_AMBUSH_RANGE && std::abs(tux.get_bottom() - me.get_bottom()) < 2 * 32.f)
+      {
+        // Strike.
+        BadGuy::set_jev_order(JevOrder::CHARGE, 1.f);
+        jev_run(dt_sec, player_left, speed * 1.2f);
+      }
+      else
+      {
+        jev_stand(dt_sec, towards);
+      }
+      break;
+
+    case JevOrder::INTERCEPT:
+    {
+      const float to_landing = jev_predict_landing_x(*player, me.get_bottom()) - me.get_middle().x;
+      if (std::abs(to_landing) < 8.f)
+        jev_stand(dt_sec, towards);
+      else
+        jev_run(dt_sec, to_landing < 0.f, speed * 1.2f);
+      break;
+    }
+
+    case JevOrder::STALK:
+      // Wait out the player's blinking just outside their reach.
+      if (std::abs(dx) < JEV_STALK_MIN)
+        jev_run(dt_sec, !player_left, speed);
+      else if (std::abs(dx) > JEV_STALK_MAX)
+        jev_run(dt_sec, player_left, speed);
+      else
+        jev_stand(dt_sec, towards);
+      break;
+
+    case JevOrder::FLANK:
+      if (player_left != m_jev_flank_left)
+      {
+        // Made it past the player: attack them from behind.
+        BadGuy::set_jev_order(JevOrder::CHARGE, 1.f);
+        jev_run(dt_sec, player_left, speed);
+      }
+      else
+      {
+        if (on_ground() && std::abs(dx) < JEV_FLANK_JUMP_RANGE)
+          m_jev_jump_pending = true;
+        jev_run(dt_sec, m_jev_flank_left, speed * 1.2f);
+      }
+      break;
+
+    case JevOrder::SPECIAL:
+      if (!jev_special(dt_sec, *player))
+        jev_run(dt_sec, player_left, speed);
+      break;
+
+    case JevOrder::JUMP:
+    case JevOrder::CHARGE:
+    default:
+      jev_run(dt_sec, player_left, speed);
+      break;
+  }
+  return true;
 }
 
 void
@@ -208,7 +438,14 @@ WalkingBadguy::collision_solid(const CollisionHit& hit)
   if ( hit.slope_normal.x == 0.0f &&
       ((hit.left && m_dir == Direction::LEFT) ||
       (hit.right && m_dir == Direction::RIGHT)) ) {
+    if (!jev_in_control())
       turn_around();
+    else if (get_jev_order() != JevOrder::HOLD && get_jev_order() != JevOrder::AMBUSH)
+      // Turning around would only make us run into the wall again, as the
+      // order decides where to go. Try to get over it instead. (Standing
+      // badguys don't turn either: facing the player again right after would
+      // make them dizzy.)
+      m_jev_jump_pending = true;
   }
 
 }
@@ -223,7 +460,10 @@ WalkingBadguy::collision_badguy(BadGuy& badguy, const CollisionHit& hit)
   if (badguy.is_frozen())
     collision_solid(hit);
 
-  if ((hit.left && (m_dir == Direction::LEFT)) || (hit.right && (m_dir == Direction::RIGHT))) {
+  // While following an order, turning around would be undone right away, and
+  // doing so over and over makes us dizzy (see turn_around()).
+  if (!jev_in_control() &&
+      ((hit.left && (m_dir == Direction::LEFT)) || (hit.right && (m_dir == Direction::RIGHT)))) {
     turn_around();
   }
 

@@ -46,6 +46,13 @@ public:
   virtual GameObjectTypes get_types() const override;
   virtual std::string get_default_sprite_name() const override;
 
+  virtual bool can_follow_jev_orders() const override;
+  virtual const char* jev_special_status() const override;
+
+protected:
+  /** Rolls at the player, whether or not we can see them. */
+  virtual bool jev_special(float dt_sec, const Player& player) override;
+
 private:
   enum Type { NORMAL, CORRUPTED };
   enum State { STATE_NORMAL, STATE_CHARGING, STATE_ROLLING };

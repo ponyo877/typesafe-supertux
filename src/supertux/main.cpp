@@ -167,11 +167,17 @@ Main::init_tinygettext()
   }
   else
   {
+#ifdef SINGLE_LEVEL_BUILD
+    // Presented in English whatever the system's language; the options menu
+    // can still change it.
+    g_dictionary_manager->set_language(tinygettext::Language::from_name("en"));
+#else
     FL_Locale *locale;
     FL_FindLocale(&locale);
     tinygettext::Language language = tinygettext::Language::from_spec( locale->lang?locale->lang:"", locale->country?locale->country:"", locale->variant?locale->variant:"");
     FL_FreeLocale(&locale);
     g_dictionary_manager->set_language(language);
+#endif
   }
 }
 
@@ -641,6 +647,23 @@ Main::launch_game(const CommandLineArguments& args)
   m_game_manager.reset(new GameManager());
   m_screen_manager.reset(new ScreenManager(*m_video_system, *m_input_manager));
 
+#ifdef SINGLE_LEVEL_BUILD
+  if (args.filenames.empty() && !args.editor)
+  {
+    // The data directory is already mounted, so the PhysFS path works as-is.
+    std::unique_ptr<GameSession> session = std::make_unique<GameSession>(SINGLE_LEVEL_PATH, *m_savegame);
+
+    gameRandom.seed(g_config->random_seed);
+    graphicsRandom.seed(0);
+
+    // Straight into the level: the start page already names it, and the
+    // intro screen would wait for a key press.
+    session->skip_intro();
+    session->restart_level();
+    m_screen_manager->push_screen(std::move(session));
+  }
+  else
+#endif
   if (!args.filenames.empty())
   {
     for(auto start_level : args.filenames)

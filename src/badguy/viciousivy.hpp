@@ -43,7 +43,12 @@ public:
   virtual void active_update(float dt_sec) override;
   virtual bool is_snipable() const override { return true; }
 
+  virtual const char* jev_special_status() const override { return on_ground() ? "ready" : "recharging"; }
+
 protected:
+  /** Leaps up into the player's way and drifts down slowly, like a mine. */
+  virtual bool jev_special(float dt_sec, const Player& player) override;
+
   virtual std::string get_explosion_sprite() const;
   virtual bool collision_squished(MovingObject& object) override;
   virtual void collision_solid(const CollisionHit &hit) override;

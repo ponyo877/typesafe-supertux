@@ -1,0 +1,464 @@
+SuperTux credits
+==============================================================================
+
+From the game's credits screen (data/credits.stxt).
+
+
+The SuperTux Team
+-----------------
+  Tobias "Tobbi" Markus - Programming
+  bruhmoent - Graphics, Programming
+  Hyland "Swagtoy" B. - Programming
+  Carsten "RustyBox" Wirtz - Graphics, Level Design, Story
+  Daniel "WeLuvGoatz" Ward - Graphics, Programming, Level Design
+  Joseph "FrostC" L. - Graphics, Level Design
+  mrkubax10 - Programming
+  Zwatotem - Programming
+  HybridDog - Programming
+  Alasdair "Servalot" - Level Design, Music
+  provigz (Vankata453) - Programming
+  MatusGuy - Programming
+
+
+Past Team Members
+-----------------
+
+Programming:
+  Matthias "MatzeB" Braun
+  Wolfgang Becker
+  Ryan "sik0fewl" Flegel
+  Tobias "tobgle" Gläßer
+  Tim "tuxdev" Goya
+  Christian "christ2go" Hagemeier
+  Ondřej "Ravu al Hemio" Hošek
+  Hume
+  Bill Kendrick
+  Miloš Klouček
+  Karkus476
+  LMH
+  Mathnerd314
+  Ingo "grumbel" Ruhnke
+  Christoph Sommer
+  M. Teufel
+
+Graphics:
+  Matthias "MatzeB" Braun
+  Stephen Groundwater
+  Alexander "Alzter" S.
+  Ingo "grumbel" Ruhnke
+  Christoph Sommer
+
+Music:
+  Marek "Wansti" Moeckel
+
+Sound:
+  Wolfgang Becker
+  Matthias "MatzeB" Braun
+  Stephen Groundwater
+  Marek "Wansti" Moeckel
+  Christoph Sommer
+
+Level Design:
+  Wolfgang Becker
+  Matthias "MatzeB" Braun
+  Kai Alex "Serano" Jockers
+  Marek "Wansti" Moeckel
+  Ingo "grumbel" Ruhnke
+  Christoph Sommer
+
+Miscellaneous:
+  Jacob "maths22" Burroughs - Packaging, Nightly builds
+  Seebi "Flakebi" - Windows build fixes
+  Ondřej "Ravu al Hemio" Hošek - Documentation
+  Karkus476 - "Flexlay" Level Editor
+  Benjamin "GiBy" Leduc - Translation Managing
+  Christine Webber - Story
+
+
+Additional Contributors
+-----------------------
+
+Programming:
+  Ricardo "blacksheep" Cruz
+  Duong-Khang "neoneurone" Nguyen
+  Willy Scheibel
+  Richard Smith
+  Matthew Taylor
+  Bastiaan "basti_" Zapf
+
+Graphics:
+  165your4
+  Bleed - http://remusprites.carbonmade.com/
+  CT. da'Bomb
+  Christine Webber
+  Sydney Dykstra
+  Kai Alex "Serano" Jockers
+  Devyn Collier Johnson
+  Benjamin P. "litespeed" Jung
+  Raghavendra "raghukamath" Kamath
+  Jason Lavallée
+  Romero Nickerson
+  Andre "C4INAN" Pinheiro
+
+Level Design:
+  CT. da'Bomb
+  Arvid Norlander
+
+Music:
+  Alasdair "Servalot"
+  Alex "cynicmusic" Smith
+  Asbjoern "Mystical" Andersen
+  congusbongus
+  Enol "Meji" Monte
+  Flan
+  Forty-Two
+  Tobias "ToBeFree" Frei
+  DJ Gentoo
+  Chris Huelsbeck
+  Bart Kelsey
+  Jason Lavallée
+  Chris "Krobonil" Leutwyler
+  Lukas "Mortimer Twang" Nystrand
+  remaxim
+  semajD
+  SnugglyBun
+  treskalle
+  ZhayTee
+
+Sound:
+Daniel Alston
+blastwavefx.com
+Ricardo Cruz
+Mathilda Edmunds
+Marianne Gagnon
+Nathan McCoy
+Paulo Morfeo
+Natalie
+Q.K.
+RodirodDude
+Some_Person
+soundscalpel.com
+Yaniel
+Bastian Zapf
+
+Miscellaneous:
+  Arian Behvandnejad
+  Maxim Bernard
+  brmbrmcar
+  Daniel Butum
+  Vincent Cheng
+  chrism
+  Cleverking2003
+  comradekingu
+  DivVerent
+  Daniela Ferraz
+  Jonathan Tyler "orange juice" Fluhart Jr.
+  Namhyeon Go
+  Fabian Greffrath
+  Reiner Herrmann
+  Lennard Hofmann
+  James De Ricco
+  Jann Horn
+  Omer I.S.
+  kernigh
+  David King
+  Jonas Kuemmerlin
+  mahboi
+  markand
+  martinvanzijl
+  Matt McCutchen
+  nicholas
+  Eric Newberry
+  Jiří "Narre" Paleček
+  PT400C
+  qwertychouskie
+  José Rebelo
+  shawnanastasio
+  Alexander Wilms
+  Erratic-C-Programmer
+  Andre "C4INAN" Pinheiro
+  Clint Moyer
+  Linus Probert
+  RamiSlicer
+  Raoul1808
+  WindowsDylan
+  Wuzzy
+  Sean Yeh
+
+
+Localization
+------------
+
+Afrikaans:
+  Martin van Zijl
+
+Albanian:
+  Indrit Bashkimi
+
+Arabic:
+  Fahad Al-Saidi, Ramzy Guemr, Sera.L, IAN RODRÍGUEZ Lorenzo, Hasan Nahleh, Israa Zamzami
+
+Armenian:
+  Grant Davtjan
+
+Asturian (Spain):
+  Tornes Ḷḷume
+
+Azerbaijani:
+  yakup
+
+Basque:
+  Bingen Galartza Iparragirre, Mielanjel (pospolos) Iraeta, Urtzi Odriozola
+
+Belarusian:
+  se luxxy, Mihas "meequz" Varantsou
+
+Bosnian:
+  Issa1552
+
+Breton:
+  Gwenn Meynier, Irriep Nala Novram
+
+Bulgarian:
+  Любомир Василев, Tony Ivanov, G Vassilev, Lyubomir Vasilev
+
+Catalan:
+  Martí Bosc, Catalanoic, Marc Celeiro, Yael Codesal, Francesc Famadas,
+  Alícia Folgarona, Jordi Mas, Ariadna Pascual, Antoni Villalonga
+
+Chinese (Simplified):
+  CodingJellyfish, Liu Sizhuang, Wenbin Lv, Matatabi Wang, Franklin Weng, 玉堂白鹤
+
+Chinese (Mandarin):
+  bluebat, CodingJellyfish, cges30901, Wei-Lun Chao, Zhao Wei Lun, James Ou, Franklin Weng
+
+Chinese (Taiwan):
+  黃柏諺, James Ou, Hsiu-Ming Chang, cges30901, Jeff Huang, Ｖ字龍(Vdragon), Franklin Weng
+
+Croatian:
+  Ilija Ćulap, Igor Dobrača, Issa1552
+
+Czech:
+  Matouš Dřízhal, fri, Ondřej Hošek, Hume, Jiří Paleček, slrslr, Jakub Vaněk
+
+Danish:
+  Anders, Joe Hansen, jonaskoelker, Lars Lyngby
+
+Dutch:
+  Anne, Pieter De Decker, Toon van Gerwen, Dennis Holierhoek, Issa1552,
+  Mar, Heimen Stoffels, thetuxgirl, Bert Van de Poel, Frank van der Loo
+
+Esperanto:
+  Rubén Leal Coba, Benjamin Leduc, KalipoWars, Frist Lsat, Verdulo :-),
+  Любомир Василев, Rachel Singh, Robin van der Vliet, tellovishous
+  Jorge Maldonado Ventura, Robin van der Vliet, vpzomtrrfrt
+
+Estonian:
+  Günter "kyber" Kits, Urmas Kvell
+
+Finnish:
+  Jiri Grönroos, Jaakoppi Horila, Lapamiko, Lassi, Jaakko Muilu,
+  Oi Suomi On!, Lauri "xet7" Ojansivu, Jan Solanti, Saku Tiihonen,
+  tingberg, Yaniel
+
+French:
+  Maxim Bernard, Amaury Doaré, Anonymouse, Sébastien Aperghis-Tramoni,
+  Benjamin Bertrand, Thomas Bigot, Laurent Brousse, David D,
+  Bertrand Delaitre, Antoine Dumondel, Raphaël Desprez-Le Goarant, Groog,
+  Florian HEGRON, Inperpetuammemoriam, Jean-Philippe L'Étoile,
+  Simon Le Guével, Ștefan ILIE, Benjamin Leduc, Céline Marmin, Lucas Mascaro,
+  MCMic, mol1, Nexus nexus, Irriep Nala Novram, Léo Poughon, Nathanael Ready,
+  Frederic Rodrigo, Semphris, Sylvain St-Amand, zecas "zezinho"
+
+French (Canada):
+  Jean-Philippe L'Étoile, Ștefan ILIE
+
+Gaelic:
+  GunChleoc
+
+Galician:
+  Martin, nin hum, Pablo Rodriguez, xanvieiro
+
+Georgian:
+  Temuri Doghonadze
+
+German:
+  Anonymouse, Ettore Atalan, Matthias Braun, cvcxc, divVerent, FabianF, firewiremb
+  Florian Forster, Moritz Hofmann, Inperpetuammemoriam, Iwan Gabovitch,
+  Marcel Haring, Ondřej Hošek, Larson März, M&m, Moritz Hofmann,
+  Tobias Markus, millimarg, Marten S., Sless, Christoph Sommer,
+  Max Teufel, TheTrueBrot, Nils Welzk, Wuzzy, Yepoleb
+
+Greek:
+  Wasilis Mandratzis-Walz, Vangelis Nomikos, Marinus Savoritias,
+  Vangelis Skarmoutsos, SomeRandomUser
+
+Hebrew:
+  GenghisKhan, Nemechek guricz, Evgeny Satanovsky,
+  Yevgney Sliosarenko, Yevgeny, Omeritzics
+
+Hungarian:
+  Andy1210, Baráth Béla, Levente Krisztián Büte, Tibor Buzási, Galp Flark,
+  Guih48, Krisztián Gyurász, gyeben, Kristóf Kófiás, Norbert Molnár,
+  Balázs Podolcsák, D. J. S., symvizan, Haba Tamás, Balázs Úr, Kővágó Zoltán
+
+Icelandic:
+  Kristján Magnússon
+
+Indonesian:
+  Triyan W. Nugroho, Christian Elbrianno Yoga
+
+Italian:
+  Am1g0, Angela, A-TNT DC, Bananasoft, Paride Barison,
+  William Beltrán, Marcello Bolognesi, Simone Centonze, Andrea Decri,
+  Gianfranco Del Borrello, Enrico, Benedetto Gregorio,
+  Sebastiano Guerrini, Iknos, Manuela Kessler, Riccardo Di Maio,
+  Tommaso Macchiella, PoketMarty, Irene Di Rosa, Mario Rossi,
+  Airina Santonocito, Seb47TV, Ioma Taani
+
+Japanese:
+  111More1, あわしろいくや, 堀 風羽, よっちゃん, Timothy Goya, Ubuntu Jackson, Sugahara Masayuki,
+  Nakano Ryo, Sumita "tako44" Sanshiro
+
+Korean:
+  Youngjun Choi, Go Nam Hyeon, Roland Kim, JungHee Lee, Myeongjin, 이명진
+
+Latin:
+  Alisa P
+
+Lithuanian:
+  Deividas Tvarijonas, Mantas Kriaučiūnas, Andrius Štikonas, Tom Urisk
+
+Low German:
+  Benedikt Straub
+
+Malay (Malaysia):
+  abuyop
+
+Malayalam:
+  Adharsh P S, Adithyan S S, Balasankar C
+
+Nepali:
+  Shalil Awaley, Manish Dangol, Prabin Gautam, Bansaj Pradhan,
+  rajansilwal, sailendrafsf
+
+Norwegian Bokmål:
+  comradekingu, Karl Ove Hufthammer, Allan Nordhøy
+
+Norwegian Nynorsk:
+  Karl Ove Hufthammer
+
+Polish:
+  Arkadiusz Chojnicki, Seba D., dominik232, Tomasz Dądela, Alina Gobarov,
+  Łukasz Hryniuk, Dominik Klementowski, Marcin Kocur, Simon Kornowski, Marcin Kralka,
+  MarPiRK, mkkot, Rob PlayZ, Grzegorz Przybylski, Marcin S, Krzysiek Szeląg,
+  Grzegorz Szymaszek, Paweł Talar, Ziemowit Zabawa
+
+Portuguese (Brazilian):
+  Fúlvio Alves, Anyon, Gabriel Arruda, Marcelo Bitencourt, Melo Everton,
+  Thiago Corbari Feldhaus (Ninja Apps), Daniela Ferraz, Victor Gonçalves,
+  Joel Gil Leon, MDK3, Jonatas L. Nogueira "Jesusaves",
+  Krishnamurti Lelis Lima Vieira Nunes, Filipe Oliveira,
+  Marcelo Paez, Rodrigo Piñero, Herval Ribeiro, Rui, Caio César Tavares
+
+Portuguese (European):
+  BlaCoiso, Hugo Carvalho, Ricardo Cruz, Daniela (Dani) Ferraz, João Frade, José Fryxell
+  Jose Jorge (zecas), lecalam, Sérgio Lopes, Ian Rodríguez Lorenzo, Sérgio Marques,
+  André Pinheiro, Joao Polonio, Rui
+
+Romanian:
+  Nicolae Crefelean, Razvan Dajboc, Ștefan ILIE, Ioan Moldovan, Anca Moșescu, Razvan
+
+Russian:
+  Dmitry "starwars32" Anikonov, Constantin Baranov,
+  Kirill Kapralov, Artem Krosheninnikov, se luxxy, Евгений малянов,
+  melikamp, Alexander Polyanski, Evgeny Satanovsky, Savsish, Simple88,
+  Andrei Stepanov, Темак, Svetlana Tkachenko, Translator TRA, Deividas Tvarijonas,
+  Roman M. Yagodin
+
+Serbian:
+  Alert Aleksandar, crunch grunch, CYBER FIGHTER, Mladen Pejaković, Slobodan Simić, Sinisa, X X
+
+Slovak:
+  Roman 'Kaktuxista' Benji, DusXMT, MiroslavR, Jose Riha
+
+Slovenian:
+  Marko Burjek, Gorzy Gorup, Andrej Mernik, Nwolfy
+
+Spanish:
+  alexlikerock, Francisco B.G., William Beltrán,
+  Jacob Burroughs, G BR, Fernando Carmona, Tam Ezquerra, Franchulo,
+  Germana, Kory Giles, juanda097, Joel Gil Leon, Jorge, Alejandro Moctezuma,
+  Pedro Montaño, Diego J. Romero López, JUAN DAVID JARAMILLO ORTIZ,
+  Diego Enmanuel Rosales Santander, Rami Slicer, Swyter, Josep Tomàs,
+  Alejandro Torres, Juan José Trujillo, Ulices
+
+Spanish (Argentinian):
+  Salomón Duarte, Dylan's_yt, Tam Ezquerra, Alejo Fernandez
+
+Spanish (Castilian):
+  Javier Beaumont, Sergio López Briñas, Fernando Carmona
+
+Swedish:
+  Kristoffer Grundström, Simon Kornowski, Anders Jonsson,
+  Arvid Norlander, Karl Jonatan Nyberg, Daniel Nylander,
+  Sebastian Rasmussen, theschitz
+
+Tatar:
+  Bulat Ibrahim, Timur Seber
+
+Telugu:
+  జయంత్ వర్మ బెల్లపుకొండ, Nanowarrior
+
+Turkish:
+  Tan Siret Akıncı, Big Brother, Erdy, faradundamarti, Alkım Kaçmaz, meczup, Mahmut Özcan,
+  Emre Özkartal, Yusuf Özsoy, root, Sarper S, Erdoğan Şahin, Utku Tönel, yakup
+
+Ukrainian:
+  Asemif official, Eugene Loza, Max Lyashuk, Olexandr Nesterenko, Arvid Norlander, Ievgen Tkach,
+  Eugen Uvin
+
+Uzbek:
+  Umidjon Almasov
+
+Vietnamese:
+  Phan Anh, Trong Dzang, nguyen vui
+
+
+Special Thanks to
+-----------------
+  Bill Kendrick - Original creator of SuperTux
+  Larry Ewing - Creator of Tux, the Linux penguin
+  SDL, OpenAL and OpenGL - For making such a great gaming experience possible on Linux
+  and you, the player - for giving this game a chance and playing it
+
+
+Contact
+-------
+Visit our webpage at
+
+https://supertux.org:
+For comments, ideas and suggestions,
+talk to us on Discord or IRC
+or share them on the forum
+
+
+Want to contribute to the game?
+-------------------------------
+
+https://github.com/supertux:
+
+
+Want to help with localization?
+-------------------------------
+
+https://app.transifex.com/arctic-games/supertux/:
+
+
+Thank you for
+-------------
+
+
+playing
+-------
+Penny awaits you in a tropical paradise...

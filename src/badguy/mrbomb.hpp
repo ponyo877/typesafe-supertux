@@ -48,6 +48,9 @@ public:
   virtual void trigger(Player* player);
   virtual void explode();
 
+  virtual bool can_follow_jev_orders() const override;
+  virtual const char* jev_special_status() const override { return "ready"; }
+
   virtual void kill_fall() override;
   virtual void ignite() override;
   static std::string class_name() { return "mrbomb"; }
@@ -67,6 +70,8 @@ protected:
   void update_ticking(float dt_sec);
 
   virtual bool collision_squished(MovingObject& object) override;
+  /** Runs at the player and blows up next to them. */
+  virtual bool jev_special(float dt_sec, const Player& player) override;
 
 protected:
   enum State : uint8_t {

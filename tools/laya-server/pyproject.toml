@@ -1,0 +1,11 @@
+[project]
+name = "supertux-laya-server"
+version = "0.1.0"
+description = "Local Jev-compatible decision server for SuperTux badguys, backed by laya-mlx"
+requires-python = ">=3.11"
+dependencies = [
+  "laya-mlx>=0.1,<0.2",
+]
+
+[tool.uv]
+package = false

@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="An unofficial one-level version of SuperTux, played in the browser, with the original enemies or with enemies steered by the Laya decision model.">
+  <link rel="icon" href="supertux2.ico?v=@SUPERTUX_VERSION_STRING@">
+  <title>SuperTux: Shallow Green</title>
+  <style>
+    :root {
+      --text: #f2f4fa;
+      --muted: #a9b0c4;
+      --faint: #7f879c;
+      --card: #10142acc;
+      --card-edge: #ffffff1f;
+      --classic: #e9eef8;
+      --classic-text: #141a33;
+      --laya: #ffcc4d;
+      --laya-text: #2a1c00;
+      --link: #8cf;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      color: var(--text);
+      font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      background-color: #0b0e1e;
+      background-image: linear-gradient(to bottom, #000a, #000c), url("supertux2_bkg.png?v=@SUPERTUX_VERSION_STRING@");
+      animation: scroll 10s linear infinite;
+    }
+
+    @keyframes scroll {
+      from { background-position: 0 0, 0 0; }
+      to { background-position: 0 0, -256px 0; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      body { animation: none; }
+    }
+
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 16px 24px;
+      text-align: center;
+    }
+
+    .logo {
+      width: 96px;
+      height: 96px;
+      image-rendering: auto;
+    }
+
+    h1 {
+      margin: 12px 0 0;
+      font-size: 40px;
+      line-height: 1.1;
+      letter-spacing: 0.02em;
+    }
+
+    .level {
+      margin: 4px 0 28px;
+      color: var(--muted);
+      font-size: 18px;
+    }
+
+    .modes {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 260px));
+      gap: 16px;
+      width: 100%;
+      justify-content: center;
+    }
+
+    .mode {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 20px;
+      border: 1px solid var(--card-edge);
+      border-radius: 12px;
+      background: var(--card);
+    }
+
+    .mode h2 {
+      margin: 0;
+      font-size: 20px;
+    }
+
+    .tag {
+      margin-left: 4px;
+      padding: 1px 6px;
+      border: 1px solid var(--card-edge);
+      border-radius: 4px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 400;
+      vertical-align: middle;
+    }
+
+    .mode p {
+      flex: 1;
+      margin: 0;
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    .start {
+      display: block;
+      padding: 12px 0;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 18px;
+      letter-spacing: 0.12em;
+      text-decoration: none;
+      transition: transform 0.1s, filter 0.1s;
+    }
+
+    .start:hover,
+    .start:focus-visible {
+      filter: brightness(1.08);
+      transform: translateY(-1px);
+    }
+
+    .start:focus-visible {
+      outline: 3px solid var(--link);
+      outline-offset: 3px;
+    }
+
+    .classic .start {
+      background: var(--classic);
+      color: var(--classic-text);
+    }
+
+    .laya .start {
+      background: var(--laya);
+      color: var(--laya-text);
+    }
+
+    .hint {
+      margin: 24px 0 0;
+      color: var(--faint);
+      font-size: 14px;
+    }
+
+    kbd {
+      padding: 0 5px;
+      border: 1px solid #ffffff33;
+      border-radius: 4px;
+      font: inherit;
+      font-size: 13px;
+    }
+
+    footer {
+      padding: 12px 16px 16px;
+      color: var(--faint);
+      font-size: 12px;
+      text-align: center;
+    }
+
+    footer p {
+      max-width: 860px;
+      margin: 2px auto;
+    }
+
+    footer a {
+      color: var(--muted);
+    }
+
+    @media (max-width: 560px) {
+      .modes {
+        grid-template-columns: minmax(0, 320px);
+      }
+
+      h1 {
+        font-size: 32px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main>
+    <img class="logo" src="supertux2.png?v=@SUPERTUX_VERSION_STRING@" alt="">
+    <h1>SuperTux</h1>
+    <p class="level">Shallow Green</p>
+
+    <div class="modes">
+      <section class="mode classic">
+        <h2>Classic</h2>
+        <p>The level as it was made, with the original enemies.</p>
+        <a class="start" href="play.html?ai=off">START</a>
+      </section>
+      <section class="mode laya">
+        <h2>Laya AI <span class="tag">precomputed</span></h2>
+        <p>Each enemy picks its tactic from the Laya model&rsquo;s answers, precomputed for every situation in the level:
+          it ambushes you, cuts you off, attacks from both sides and dodges your stomps.</p>
+        <a class="start" href="play.html?ai=laya-rich">START</a>
+      </section>
+    </div>
+
+    <p class="hint"><kbd>&larr;</kbd> <kbd>&rarr;</kbd> move, <kbd>Space</kbd> jump, <kbd>Esc</kbd> menu. The first start downloads about 310&nbsp;MB.</p>
+  </main>
+
+  <footer>
+    <p>SuperTux &copy; 2003&ndash;2026 SuperTux Devel Team. This is an unofficial version, modified in 2026 by ponyo877
+      (one level, enemies steered by a decision model). It comes with ABSOLUTELY NO WARRANTY. It is free software, and you
+      are welcome to redistribute it under the GNU General Public License version 3:
+      <a href="LICENSE.txt">license</a>, <a href="https://github.com/ponyo877/typesafe-supertux">source code</a>.</p>
+    <p>Level &ldquo;Shallow Green&rdquo; by Carsten Wirtz and music &ldquo;Forest Midday&rdquo; by SnugglyBun and Marek Moeckel, both
+      <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>. Enemy decisions precomputed with Laya by
+      Convai Innovations (Apache 2.0). <a href="credits.html">Full credits and licenses</a>.</p>
+  </footer>
+</body>
+
+</html>

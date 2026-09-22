@@ -139,6 +139,9 @@ public:
   void toggle_pause();
   void abort_level();
   bool is_active() const;
+  /** Whether this session was launched on its own, i.e. there is no worldmap,
+      levelset or editor to return to. */
+  bool is_standalone() const;
   inline void skip_intro() { m_skip_intro = true; }
 
   // TODO: Use pointer instead of reference. m_savegame can be NULL when the
@@ -215,6 +218,7 @@ private:
   bool m_active; /** Game active? **/
 
   bool m_end_seq_started;
+  bool m_restart_after_finish; /**< finish() found no screen to return to */
   bool m_pause_target_timer;
 
   std::unique_ptr<GameObject> m_current_cutscene_text;

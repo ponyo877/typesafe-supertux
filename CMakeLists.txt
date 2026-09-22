@@ -114,6 +114,9 @@ if(IS_SUPERTUX_RELEASE)
   option(STEAM_BUILD "Prepare build for Steam" OFF)
 endif()
 
+option(SINGLE_LEVEL_BUILD "Boot directly into a single level, skipping the title screen and worldmap" OFF)
+set(SINGLE_LEVEL_PATH "levels/world2/shallow_green.stl" CACHE STRING "Level (PhysFS path) to boot into when SINGLE_LEVEL_BUILD is enabled")
+
 option(SUPERTUX_LTO "Use link-time optimizations (Takes more RAM at compilation, gives smaller and faster executables)" OFF)
 
 # Mobile builds
@@ -407,7 +410,7 @@ if(WIN32)
 endif()
 
 if(EMSCRIPTEN)
-  target_link_options(supertux2 PUBLIC -sEXPORTED_FUNCTIONS=['_main','_set_resolution','_save_config','_onDownloadProgress','_onDownloadFinished','_onDownloadError','_onDownloadAborted','_getExceptionMessage'] PUBLIC -sEXPORTED_RUNTIME_METHODS=['ccall','cwrap'])
+  target_link_options(supertux2 PUBLIC -sEXPORTED_FUNCTIONS=['_main','_set_resolution','_save_config','_onDownloadProgress','_onDownloadFinished','_onDownloadError','_onDownloadAborted','_getExceptionMessage','_jev_set_order','_jev_set_send_interval','_jev_set_options'] PUBLIC -sEXPORTED_RUNTIME_METHODS=['ccall','cwrap'])
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   # This option makes symbol names available for libc's backtrace().
   target_link_options(supertux2 PUBLIC -rdynamic)
@@ -482,6 +485,9 @@ if(NOT EMSCRIPTEN)
   if(ENABLE_DISCORD)
     target_link_libraries(supertux2 PUBLIC discord-rpc)
   endif()
+else()
+  # SDL3 and SDL3_ttf come from Emscripten ports, SDL3_image does not
+  target_link_libraries(supertux2 PUBLIC SDL3_image)
 endif()
 
 if(ANDROID)

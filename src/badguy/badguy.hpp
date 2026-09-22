@@ -16,6 +16,7 @@
 
 #pragma once
 
+#include "badguy/jev_order.hpp"
 #include "editor/object_option.hpp"
 #include "object/moving_sprite.hpp"
 #include "object/portable.hpp"
@@ -177,6 +178,21 @@ public:
   virtual void add_wind_velocity(const Vector& velocity, const Vector& end_speed);
 
   inline Physic& get_physic() { return m_physic; }
+
+  /** Follow the given order (see badguy/jev_order.hpp) for the next `ttl`
+      seconds instead of the regular behaviour. */
+  virtual void set_jev_order(JevOrder order, float ttl);
+  /** The order currently in effect; JevOrder::DEFAULT once it expired. */
+  JevOrder get_jev_order() const;
+  /** Whether this badguy carries out orders right now. */
+  virtual bool can_follow_jev_orders() const { return false; }
+  /** For the rich prompt: "ready", "recharging" or "none" (no special move). */
+  virtual const char* jev_special_status() const { return "none"; }
+  /** Whether stepping (or landing) at `x` would take us onto hurting tiles:
+      spikes on the ground there or at the bottom of a drop. */
+  bool jev_spikes_at(float x) const;
+  /** jev_spikes_at() just ahead of us. */
+  bool jev_spikes_ahead(bool left) const;
 
 protected:
   enum State {
@@ -351,6 +367,9 @@ private:
 
   Color m_flame_color;
   Timer m_flame_timer;
+
+  JevOrder m_jev_order = JevOrder::DEFAULT;
+  Timer m_jev_order_timer;
 
 private:
   BadGuy(const BadGuy&) = delete;

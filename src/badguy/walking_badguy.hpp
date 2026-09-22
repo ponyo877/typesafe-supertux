@@ -18,6 +18,7 @@
 #define HEADER_SUPERTUX_BADGUY_WALKING_BADGUY_HPP
 
 #include "badguy/badguy.hpp"
+#include "badguy/jev_order.hpp"
 
 class Timer;
 
@@ -78,8 +79,30 @@ public:
   /** Set max_drop_height depending on the given behavior */
   void set_ledge_behavior(LedgeBehavior behavior);
 
+  virtual void set_jev_order(JevOrder order, float ttl) override;
+  virtual bool can_follow_jev_orders() const override;
+  /** With JEV_OPT_PURSUIT, badguys that got an order stay active offscreen. */
+  virtual bool always_active() const override;
+
+  inline bool is_jev_pursuing() const { return m_jev_pursuing; }
+  inline void stop_jev_pursuit() { m_jev_pursuing = false; }
+
 protected:
   void turn_around();
+
+  /** Carries out JevOrder::SPECIAL; returns false if this kind has no
+      special move, in which case it charges. */
+  virtual bool jev_special(float dt_sec, const Player& player);
+
+  /** Runs towards `left` at `speed`, stopping short of spikes. */
+  void jev_run(float dt_sec, bool left, float speed);
+  /** Stands still facing `facing`. */
+  void jev_stand(float dt_sec, Direction facing);
+  /** Whether a falling player is about to land on us. */
+  bool jev_stomp_imminent(const Player& player) const;
+  /** Whether an order or a pursuit decides where we go (so we don't turn
+      around at walls and badguys on our own). */
+  bool jev_in_control() const;
 
 protected:
   std::string walk_left_action;
@@ -89,6 +112,20 @@ protected:
   Timer turn_around_timer;
   int turn_around_counter; /**< counts number of turns since turn_around_timer was started */
   bool m_stay_on_platform_overridden;
+
+private:
+  /** Carries out the current JevOrder; returns false if there is none and
+      the regular behaviour should run. */
+  bool jev_update(float dt_sec);
+
+protected:
+  bool m_jev_jump_pending; /**< jump as soon as we stand on the ground */
+
+private:
+  bool m_jev_pursuing;     /**< got an order while JEV_OPT_PURSUIT was on */
+  bool m_jev_flank_left;   /**< direction of the current flank */
+  Timer m_jev_dodge_timer;
+  bool m_jev_dodge_left;
 
 private:
   WalkingBadguy(const WalkingBadguy&) = delete;

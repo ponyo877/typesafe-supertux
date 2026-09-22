@@ -239,6 +239,12 @@ Snail::is_snipable() const
          state != STATE_GUARD;
 }
 
+bool
+Snail::can_follow_jev_orders() const
+{
+  return state == STATE_NORMAL && WalkingBadguy::can_follow_jev_orders();
+}
+
 void
 Snail::collision_solid(const CollisionHit& hit)
 {

@@ -45,6 +45,7 @@
 #include "object/tilemap.hpp"
 #include "object/vertical_stripes.hpp"
 #include "physfs/ifile_stream.hpp"
+#include "port/jev_bridge.hpp"
 #include "squirrel/squirrel_environment.hpp"
 #include "supertux/colorscheme.hpp"
 #include "supertux/constants.hpp"
@@ -366,6 +367,8 @@ Sector::update(float dt_sec)
   BIND_SECTOR(*this);
 
   m_squirrel_environment->update(dt_sec);
+
+  jev_bridge::tick(*this, dt_sec);
 
   GameObjectManager::update(dt_sec);
 

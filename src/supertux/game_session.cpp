@@ -16,6 +16,8 @@
 
 #include "supertux/game_session.hpp"
 
+#include <config.h>
+
 #include <cfloat>
 #include <fmt/format.h>
 #include <stdexcept>
@@ -93,6 +95,7 @@ GameSession::GameSession(Savegame* savegame, Statistics* statistics) :
   m_pockets_at_start(),
   m_active(false),
   m_end_seq_started(false),
+  m_restart_after_finish(false),
   m_pause_target_timer(false),
   m_current_cutscene_text(),
   m_endsequence_timer()
@@ -468,6 +471,17 @@ void
 GameSession::abort_level()
 {
   MenuManager::instance().clear_menu_stack();
+
+#ifdef SINGLE_LEVEL_BUILD
+  if (is_standalone())
+  {
+    // Nothing to go back to: aborting means starting over. update() unpauses
+    // now that the menu is closed, then restarts.
+    reset_button = true;
+    return;
+  }
+#endif
+
   ScreenManager::current()->pop_screen();
 
   for (const auto& p : m_currentsector->get_players())
@@ -630,6 +644,14 @@ GameSession::update(float dt_sec, const Controller& controller)
   m_level->m_stats.update_timers(dt_sec);
 
   check_end_conditions();
+
+  if (m_restart_after_finish)
+  {
+    m_restart_after_finish = false;
+    m_end_seq_started = false;
+    reset_level();
+    restart_level();
+  }
 
   const auto& players = m_currentsector->get_players();
 
@@ -823,7 +845,24 @@ GameSession::finish(bool win)
     }
   }
 
+#ifdef SINGLE_LEVEL_BUILD
+  if (is_standalone())
+  {
+    // This session is the only screen; popping it would leave the main loop
+    // without a screen. Start the level over instead, from update(), since a
+    // script may call this in the middle of a sector update.
+    m_restart_after_finish = true;
+    return;
+  }
+#endif
+
   ScreenManager::current()->pop_screen();
+}
+
+bool
+GameSession::is_standalone() const
+{
+  return !worldmap::WorldMapSector::current() && !LevelsetScreen::current() && !Editor::current();
 }
 
 void

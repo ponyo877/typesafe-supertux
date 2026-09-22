@@ -16,9 +16,11 @@
 
 #include "badguy/viciousivy.hpp"
 
+#include <algorithm>
 #include <math.h>
 
 #include "math/random.hpp"
+#include "object/player.hpp"
 #include "object/sprite_particle.hpp"
 #include "sprite/sprite.hpp"
 #include "sprite/sprite_manager.hpp"
@@ -83,6 +85,16 @@ ViciousIvy::on_type_change(int old_type)
 bool
 ViciousIvy::is_freezable() const
 {
+  return true;
+}
+
+bool
+ViciousIvy::jev_special(float dt_sec, const Player& player)
+{
+  if (on_ground())
+    m_jev_jump_pending = true;
+  jev_run(dt_sec, player.get_bbox().get_middle().x < get_bbox().get_middle().x,
+          std::max(walk_speed, JEV_RUN_SPEED * jev_speed_scale()));
   return true;
 }
 

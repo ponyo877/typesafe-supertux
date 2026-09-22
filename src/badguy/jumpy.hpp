@@ -44,11 +44,17 @@ public:
   GameObjectTypes get_types() const override;
   std::string get_default_sprite_name() const override;
 
+  /** Only with JEV_OPT_JUMPY, so the basic prompt and Jev see no change. */
+  virtual bool can_follow_jev_orders() const override;
+  virtual const char* jev_special_status() const override { return "ready"; }
+
 protected:
   virtual std::vector<Direction> get_allowed_directions() const override;
 
 private:
   HitResponse hit(const CollisionHit& hit);
+  /** Velocity for the next hop, following the current order. */
+  Vector jev_hop() const;
 
 private:
   enum Type {

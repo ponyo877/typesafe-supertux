@@ -228,6 +228,30 @@ Igel::should_roll() const
   return in_reach_left && in_reach_right && in_reach_top && in_reach_bottom && can_see_player;
 }
 
+bool
+Igel::can_follow_jev_orders() const
+{
+  // Charging and rolling run their course.
+  return m_state == STATE_NORMAL && WalkingBadguy::can_follow_jev_orders();
+}
+
+const char*
+Igel::jev_special_status() const
+{
+  return m_roll_cooldown.started() ? "recharging" : "ready";
+}
+
+bool
+Igel::jev_special(float, const Player& player)
+{
+  if (m_roll_cooldown.started())
+    return false;
+
+  m_dir = (player.get_bbox().get_middle().x < get_bbox().get_middle().x) ? Direction::LEFT : Direction::RIGHT;
+  charge();
+  return true;
+}
+
 void
 Igel::charge()
 {

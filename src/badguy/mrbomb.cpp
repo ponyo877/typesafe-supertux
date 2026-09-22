@@ -205,6 +205,26 @@ MrBomb::trigger(Player* player)
   m_ticking_sound->play();
 }
 
+bool
+MrBomb::can_follow_jev_orders() const
+{
+  // A ticking bomb is past taking orders.
+  return !is_ticking() && WalkingBadguy::can_follow_jev_orders();
+}
+
+bool
+MrBomb::jev_special(float dt_sec, const Player& player)
+{
+  const Vector to_player = player.get_bbox().get_middle() - get_bbox().get_middle();
+  if (std::abs(to_player.x) < 40.f && std::abs(to_player.y) < 40.f)
+  {
+    explode();
+    return true;
+  }
+  jev_run(dt_sec, to_player.x < 0.f, std::max(walk_speed, JEV_RUN_SPEED * jev_speed_scale()) * 1.2f);
+  return true;
+}
+
 void
 MrBomb::explode()
 {

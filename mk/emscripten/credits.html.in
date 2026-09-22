@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Credits and licenses of this web version of SuperTux: Shallow Green.">
+  <link rel="icon" href="supertux2.ico?v=@SUPERTUX_VERSION_STRING@">
+  <title>Credits and Licenses</title>
+  <style>
+    :root {
+      --text: #e9ecf5;
+      --muted: #a9b0c4;
+      --edge: #ffffff1f;
+      --link: #8cf;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      color: var(--text);
+      background: #0b0e1e;
+      font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    }
+
+    main {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 32px 16px 48px;
+    }
+
+    h1 {
+      margin: 0 0 4px;
+      font-size: 30px;
+    }
+
+    h2 {
+      margin: 36px 0 8px;
+      padding-bottom: 4px;
+      border-bottom: 1px solid var(--edge);
+      font-size: 20px;
+    }
+
+    p,
+    li {
+      color: var(--muted);
+    }
+
+    strong {
+      color: var(--text);
+    }
+
+    a {
+      color: var(--link);
+    }
+
+    ul {
+      padding-left: 20px;
+    }
+
+    .back {
+      display: inline-block;
+      margin-bottom: 24px;
+    }
+
+    .warranty {
+      padding: 12px 16px;
+      border: 1px solid var(--edge);
+      border-radius: 8px;
+    }
+  </style>
+</head>
+
+<body>
+  <main>
+    <a class="back" href="./">&larr; Back to the game</a>
+    <h1>Credits and Licenses</h1>
+    <p>SuperTux: Shallow Green, web version (SuperTux @SUPERTUX_VERSION_STRING@).</p>
+
+    <h2>SuperTux</h2>
+    <p><strong>SuperTux</strong> is copyright &copy; 2003&ndash;2026 the SuperTux Devel Team and contributors,
+      and is free software under the <a href="LICENSE.txt">GNU General Public License version 3</a>.
+      The people who made it are listed in <a href="supertux-credits.txt">the game&rsquo;s credits</a>.
+      Official website: <a href="https://www.supertux.org/">supertux.org</a>.</p>
+    <p class="warranty">This program comes with ABSOLUTELY NO WARRANTY, to the extent permitted by applicable law.
+      This is free software, and you are welcome to redistribute it under the conditions of the
+      GNU General Public License version 3.</p>
+
+    <h2>This version</h2>
+    <p>This is an <strong>unofficial, modified version</strong> of SuperTux, changed by ponyo877 in September 2026.
+      It is not made or endorsed by the SuperTux Devel Team. The changes:</p>
+    <ul>
+      <li>It starts directly in the level &ldquo;Shallow Green&rdquo; and starts over instead of returning to a menu.</li>
+      <li>In the &ldquo;Laya AI&rdquo; mode, the enemies follow decisions of the Laya model: they ambush, intercept,
+        keep their distance, attack from both sides, use special moves, keep chasing and dodge stomps.</li>
+      <li>The text is always English, and content under a non-commercial license is left out (see below).</li>
+    </ul>
+    <p>The complete source code of this version, including the tools that built it, is at
+      <a href="https://github.com/ponyo877/typesafe-supertux">github.com/ponyo877/typesafe-supertux</a>,
+      under the same license.</p>
+
+    <h2>Level, music, graphics and sounds</h2>
+    <ul>
+      <li>Level <strong>&ldquo;Shallow Green&rdquo;</strong> by Carsten &ldquo;RustyBox&rdquo; Wirtz,
+        licensed under <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>. The level file is unchanged.</li>
+      <li>Music <strong>&ldquo;Forest Midday&rdquo;</strong> by SnugglyBun and Marek &ldquo;Wansti&rdquo; Moeckel,
+        licensed under <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>.</li>
+      <li>Graphics, sounds, music and other game data by the SuperTux contributors, under the GPL, CC BY-SA, CC BY
+        or CC0 as listed file by file in <a href="AUTHORS.txt">AUTHORS.txt</a>. Most graphics were created by
+        Rustybox, Eauix, WeLuvGoatz, FrostC, FilipOK and Bruhmoent.</li>
+      <li>Two items of the game data are licensed for non-commercial use only (CC BY-NC 4.0) and are not included:
+        the conveyor belt images (not used in this level) and the death sound <code>kill.wav</code> by RodirodDude,
+        which is replaced by the hurt sound <code>hurt.wav</code> by Matthias &ldquo;MatzeB&rdquo; Braun.</li>
+      <li>Fonts: Varela Round, Dekko, Noto Sans, Source Code Pro and Roboto under the SIL Open Font License 1.1,
+        and Mapo Backpacking by Mapo-gu, Seoul, under the Korea Open Government License Type 1.</li>
+    </ul>
+
+    <h2>Enemy decisions</h2>
+    <p>The &ldquo;Laya AI&rdquo; enemies act on answers of <strong>Laya</strong> by Convai Innovations and contributors
+      (<a href="https://github.com/NandhaKishorM/laya">github.com/NandhaKishorM/laya</a>, Apache License 2.0), run with
+      <strong>laya-mlx</strong> by mizorewww (<a href="https://github.com/mizorewww/laya-mlx">github.com/mizorewww/laya-mlx</a>,
+      Apache License 2.0). The answers to every question the game can ask were computed in advance; the model itself
+      is not part of this page.</p>
+
+    <h2>Third-party software</h2>
+    <p>The game is built with Emscripten, SDL 3, SDL_ttf, SDL_image, FreeType, HarfBuzz, libogg, libvorbis, zlib,
+      libpng, libjpeg-turbo (based in part on the work of the Independent JPEG Group), PhysicsFS, {fmt}, GLM, Squirrel,
+      tinygettext and others. Portions of this software are copyright &copy; 2024 The FreeType Project
+      (<a href="https://freetype.org/">freetype.org</a>). All rights reserved.
+      Their licenses: <a href="third-party-licenses.txt">third-party-licenses.txt</a>.</p>
+  </main>
+</body>
+
+</html>

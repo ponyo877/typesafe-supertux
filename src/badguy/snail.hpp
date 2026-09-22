@@ -38,6 +38,9 @@ public:
   virtual bool is_freezable() const override;
   virtual bool is_snipable() const override;
 
+  /** Only a walking snail takes orders, not a flipped or kicked one. */
+  virtual bool can_follow_jev_orders() const override;
+
   static std::string class_name() { return "snail"; }
   virtual std::string get_class_name() const override { return class_name(); }
   static std::string display_name() { return _("Snail"); }
