@@ -208,9 +208,7 @@
       </section>
       <section class="mode trained">
         <h2>Trained AI <span class="tag">self-play</span></h2>
-        <p>These enemies learned from hundreds of hours of simulated play against a Tux that kept learning too.
-          Each one sees where it is in the level, how you move and what its allies are doing, and picks its tactic:
-          it waits for you, cuts you off, flanks you or backs off from your stomps.</p>
+        <p>Enemies that learned their tactics by playing against a Tux that learned too.</p>
         <a class="start" href="play.html?ai=coevo4">START</a>
       </section>
     </div>
