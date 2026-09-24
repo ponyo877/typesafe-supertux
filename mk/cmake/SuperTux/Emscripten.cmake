@@ -4,7 +4,10 @@ set(SQ_DISABLE_INSTALLER YES)
 set(SSQ_BUILD_INSTALL NO)
 
 set(EM_USE_FLAGS "-sDISABLE_EXCEPTION_CATCHING=0 -sUSE_SDL=3 -sUSE_SDL_IMAGE=3 -sUSE_SDL_TTF=3 -sUSE_VORBIS=1 -fPIC")
-set(EM_LINK_FLAGS " -sINITIAL_MEMORY=134217728 -sALLOW_MEMORY_GROWTH=1 -sMAXIMUM_MEMORY=536870912 -sERROR_ON_UNDEFINED_SYMBOLS=0 --preload-file ${BUILD_CONFIG_DATA_DIR} -lidbfs.js")
+# --use-preload-cache keeps the data package in IndexedDB, so the ~330 MB are
+# downloaded once per build instead of on every start (browsers don't keep a
+# file this large in their HTTP cache).
+set(EM_LINK_FLAGS " -sINITIAL_MEMORY=134217728 -sALLOW_MEMORY_GROWTH=1 -sMAXIMUM_MEMORY=536870912 -sERROR_ON_UNDEFINED_SYMBOLS=0 --preload-file ${BUILD_CONFIG_DATA_DIR} --use-preload-cache -lidbfs.js")
 if(ENABLE_OPENGL)
   set(EM_LINK_FLAGS "${EM_LINK_FLAGS} -sFULL_ES2")
   set(HAVE_OPENGL ON CACHE BOOL "")
