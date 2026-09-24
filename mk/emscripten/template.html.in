@@ -4,6 +4,7 @@
 <head>
   <meta charset="utf-8">
   <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
   <meta name="description" content="Play SuperTux directly in your browser. No installation required.">
   <link rel="icon" href="supertux2.ico?v=@SUPERTUX_VERSION_STRING@" />
   <title>Play SuperTux online</title>
@@ -25,6 +26,35 @@
     canvas.emscripten {
       border: 0 none;
       background-color: #0000;
+      /* Touches go to the game, not to scrolling or zooming the page. */
+      touch-action: none;
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-touch-callout: none;
+    }
+    html, body {
+      overscroll-behavior: none;
+    }
+    #rotate_hint {
+      display: none;
+      position: fixed;
+      left: 50%;
+      bottom: 12px;
+      transform: translateX(-50%);
+      z-index: 10;
+      padding: 6px 12px;
+      font: 13px/1.4 system-ui, sans-serif;
+      color: #fff;
+      background: #000b;
+      border-radius: 10px;
+      pointer-events: none;
+    }
+    @media (orientation: portrait) and (pointer: coarse) {
+      #rotate_hint { display: block; }
+    }
+    /* The AI's own readout is for a big screen; on a phone it would cover the game. */
+    @media (max-width: 900px), (pointer: coarse) {
+      #jev_hud { display: none !important; }
     }
 
     .spinner {
@@ -193,6 +223,7 @@
     </div>
   </div>
   <canvas class="emscripten" id="canvas" oncontextmenu="event.preventDefault()" tabindex="0"></canvas>
+  <div id="rotate_hint">Turn your phone sideways for a wider view</div>
   <p id="output"></p>
   <input type="file" id="file_upload" multiple="multiple" style="display:none">
   <script src="laya-prompt.js?v=@SUPERTUX_VERSION_STRING@"></script>
@@ -200,6 +231,20 @@
   <script src="laya-rich-prompt.js?v=@SUPERTUX_VERSION_STRING@"></script>
   <script src="laya-rich-table.js?v=@SUPERTUX_VERSION_STRING@"></script>
   <script src="jev-controller.js?v=@SUPERTUX_VERSION_STRING@"></script>
+  <script src="stats.js?v=@SUPERTUX_VERSION_STRING@"></script>
+  <script>
+    // Touch screens get SuperTux's own on-screen buttons. The browser does not
+    // tell the game about touch devices when it starts, so the page does.
+    (function () {
+      if (!(navigator.maxTouchPoints > 0 || matchMedia("(pointer: coarse)").matches))
+        return;
+      (function enable() {
+        if (typeof Module === "undefined" || !Module._jev_set_mobile_controls)
+          return setTimeout(enable, 500);
+        Module._jev_set_mobile_controls(1);
+      })();
+    })();
+  </script>
   <script>
     if ("@CMAKE_BUILD_TYPE@" == "Release") {
       document.getElementById("output").style.display = "none";
@@ -386,8 +431,16 @@
       if (!setResolution)
         return;
 
+      // SuperTux wants at least 640x480; on a smaller screen (a phone on its
+      // side) it would shrink its picture and leave part of the window
+      // black. It gets a larger canvas instead, shown at the window's size.
+      var w = window.innerWidth, h = window.innerHeight;
+      var k = Math.max(1, 640 / w, 480 / h);
+      var canvas = document.getElementById("canvas");
+      canvas.style.width = k > 1 ? w + "px" : "";
+      canvas.style.height = k > 1 ? h + "px" : "";
       try {
-        setResolution(window.innerWidth, window.innerHeight);
+        setResolution(Math.round(w * k), Math.round(h * k));
       } catch(err) {}
     }
 

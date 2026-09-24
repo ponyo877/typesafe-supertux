@@ -1,0 +1,153 @@
+//  SuperTux
+//  Copyright (C) 2026 ponyo877
+//
+//  This program is free software: you can redistribute it and/or modify
+//  it under the terms of the GNU General Public License as published by
+//  the Free Software Foundation, either version 3 of the License, or
+//  (at your option) any later version.
+//
+//  This program is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//  GNU General Public License for more details.
+//
+//  You should have received a copy of the GNU General Public License
+//  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+// Everyone's plays of this mode: how many attempts, deaths and clears there
+// have been, shown at the top of the screen, and faint marks in the level
+// where players died, so the dangerous spots show.
+//
+// The game reports what happens through window.jev_on_event (see
+// src/port/jev_bridge.cpp). Every start of the level is an attempt (there
+// are no checkpoints in this version); a death is sent with where it
+// happened. The server (tools/web/cloudflare/worker.js, or
+// tools/jev-proxy/server.mjs locally) keeps only counts: per mode, and per
+// tile for the deaths. Automated play (tools/eval, tools/rl, tools/coevo)
+// runs in this page too but is not counted.
+
+(function () {
+  "use strict";
+
+  const REFRESH_MS = 60000;
+  const params = new URLSearchParams(location.search);
+  const mode = params.get("ai") || "off";
+  const LABELS = { off: "Classic", coevo4: "Trained AI", "laya-rich": "Laya AI" };
+  const label = LABELS[mode] || mode;
+
+  let server = { attempts: 0, deaths: 0, clears: 0 };
+  let pending = { attempts: 0, deaths: 0, clears: 0 };  // since the last answer
+  let loaded = false;
+  let tile = 32;
+  const marks = new Map();  // "tx ty" -> deaths
+  let marksShown = false;
+
+  const counting = () => !window.jev_inline;
+
+  // --- the counts -----------------------------------------------------------
+
+  const box = document.createElement("div");
+  box.id = "stats_box";
+  box.style.cssText =
+    "position:fixed;left:50%;top:6px;transform:translateX(-50%);z-index:10;padding:3px 10px;" +
+    "font:12px/1.4 system-ui,sans-serif;color:#fff;background:#0009;border-radius:10px;" +
+    "pointer-events:none;white-space:nowrap;display:none";
+  const format = (n) => n.toLocaleString("en-US");
+  function show() {
+    if (!loaded)
+      return;
+    const total = (kind) => server[kind] + pending[kind];
+    box.textContent = `Everyone, ${label}: ${format(total("attempts"))} tries · ` +
+                      `${format(total("deaths"))} deaths · ${format(total("clears"))} clears`;
+    box.style.display = "";
+  }
+  window.addEventListener("DOMContentLoaded", () => document.body.appendChild(box));
+
+  function send(kind, x, y) {
+    if (!counting())
+      return;
+    const event = kind === "death" ? { mode, kind, x: Math.round(x), y: Math.round(y) } : { mode, kind };
+    const body = JSON.stringify(event);
+    if (!(navigator.sendBeacon && navigator.sendBeacon("api/stats", new Blob([body], { type: "application/json" }))))
+      fetch("api/stats", { method: "POST", body, keepalive: true }).catch(() => {});
+  }
+
+  // --- the marks ------------------------------------------------------------
+
+  /** Hands the marks to the game, once it runs. */
+  function showMarks() {
+    if (marksShown || !marks.size)
+      return;
+    if (typeof Module === "undefined" || !Module._jev_set_death_marks || !Module.HEAPF32) {
+      setTimeout(showMarks, 1000);
+      return;
+    }
+    const most = Math.max(...marks.values());
+    const data = new Float32Array(marks.size * 3);
+    let i = 0;
+    for (const [key, n] of marks) {
+      const [tx, ty] = key.split(" ").map(Number);
+      data[i++] = (tx + 0.5) * tile;
+      data[i++] = (ty + 0.5) * tile;
+      data[i++] = most > 1 ? Math.log(n) / Math.log(most) : 1;
+    }
+    const pointer = Module._malloc(data.byteLength);
+    Module.HEAPF32.set(data, pointer >> 2);
+    Module._jev_set_death_marks(pointer, marks.size);
+    Module._free(pointer);
+    marksShown = true;
+  }
+
+  async function refresh() {
+    try {
+      const response = await fetch(`api/stats?mode=${encodeURIComponent(mode)}`, { cache: "no-store" });
+      if (response.ok) {
+        const data = await response.json();
+        server = { attempts: data.attempts, deaths: data.deaths, clears: data.clears };
+        pending = { attempts: 0, deaths: 0, clears: 0 };
+        tile = data.tile || 32;
+        marks.clear();
+        for (const [tx, ty, n] of data.marks)
+          marks.set(`${tx} ${ty}`, n);
+        marksShown = false;
+        loaded = true;
+        show();
+        showMarks();
+      }
+    } catch (error) {
+      // No counts then; the game plays on.
+    }
+    setTimeout(refresh, REFRESH_MS);
+  }
+  refresh();
+
+  // --- what the game reports ------------------------------------------------
+
+  const previous = window.jev_on_event;
+  window.jev_on_event = function (json) {
+    if (counting()) {
+      try {
+        const e = JSON.parse(json);
+        if (e.type === "restart") {
+          pending.attempts++;
+          send("attempt");
+        } else if (e.type === "player_death") {
+          pending.deaths++;
+          send("death", e.x, e.y);
+          const key = `${Math.floor(e.x / tile)} ${Math.floor(e.y / tile)}`;
+          marks.set(key, (marks.get(key) || 0) + 1);
+          marksShown = false;
+          showMarks();
+        } else if (e.type === "level_finished" && e.detail === "win") {
+          pending.clears++;
+          send("clear");
+        }
+        show();
+      } catch (error) {
+        // A malformed event is not worth stopping the game for.
+      }
+    }
+    if (previous)
+      previous(json);
+  };
+})();

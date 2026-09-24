@@ -213,12 +213,13 @@
       </section>
     </div>
 
-    <p class="hint"><kbd>&larr;</kbd> <kbd>&rarr;</kbd> move, <kbd>Space</kbd> jump, <kbd>Esc</kbd> menu. The first start downloads about 340&nbsp;MB; later starts load it from your browser.</p>
+    <p class="hint"><kbd>&larr;</kbd> <kbd>&rarr;</kbd> move, <kbd>Space</kbd> jump, <kbd>Esc</kbd> menu; on phones, the on-screen buttons. The first start downloads about 340&nbsp;MB; later starts load it from your browser.</p>
   </main>
 
   <footer>
     <p>SuperTux &copy; 2003&ndash;2026 SuperTux Devel Team. This is an unofficial version, modified in 2026 by ponyo877
-      (one level, enemies trained by reinforcement learning). It comes with ABSOLUTELY NO WARRANTY. It is free software, and you
+      (one level without checkpoints, enemies trained by reinforcement learning; the page counts everyone&rsquo;s
+      attempts and deaths anonymously). It comes with ABSOLUTELY NO WARRANTY. It is free software, and you
       are welcome to redistribute it under the GNU General Public License version 3:
       <a href="LICENSE.txt">license</a>, <a href="https://github.com/ponyo877/typesafe-supertux">source code</a>.</p>
     <p>Level &ldquo;Shallow Green&rdquo; by Carsten Wirtz and music &ldquo;Forest Midday&rdquo; by SnugglyBun and Marek Moeckel, both

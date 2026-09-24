@@ -20,10 +20,76 @@
 // per object), so it sits in R2 in parts, data/<DATA_VERSION>/0, 1, ..., and
 // is streamed back here as one file. Only requests that match no asset reach
 // this code.
+//
+// It also keeps everyone's attempts, deaths and clears per mode, and how
+// often players died on each tile, in D1 (schema.sql): /api/stats, used by
+// mk/emscripten/stats.js. Only these counts are kept: no single play, no
+// address, nothing about who played.
+
+const MODES = new Set(["off", "coevo4", "coevo3", "coevo2", "coevo", "rl2", "rl", "llm", "laya-rich", "laya"]);
+const KINDS = new Set(["attempt", "death", "clear"]);
+const TILE = 32;
+const MARKS = 2000;  // the tiles with the most deaths that are sent back
+
+const json = (body, init = {}) => new Response(JSON.stringify(body), {
+  ...init, headers: { "Content-Type": "application/json", ...(init.headers || {}) },
+});
+
+async function stats(request, env, ctx) {
+  const url = new URL(request.url);
+  if (request.method === "POST") {
+    const text = await request.text();
+    if (text.length > 200)
+      return new Response("Too large", { status: 413 });
+    let event;
+    try { event = JSON.parse(text); } catch { return new Response("Bad JSON", { status: 400 }); }
+    const { mode, kind, x, y } = event || {};
+    if (!MODES.has(mode) || !KINDS.has(kind))
+      return new Response("Bad event", { status: 400 });
+    const statements = [
+      env.STATS.prepare("INSERT INTO counts (mode, kind, n) VALUES (?1, ?2, 1) " +
+                        "ON CONFLICT (mode, kind) DO UPDATE SET n = n + 1").bind(mode, kind),
+    ];
+    if (kind === "death") {
+      if (!Number.isFinite(x) || !Number.isFinite(y) || x < 0 || x > 20000 || y < -200 || y > 2000)
+        return new Response("Bad position", { status: 400 });
+      statements.push(env.STATS.prepare(
+        "INSERT INTO deaths (mode, tx, ty, n) VALUES (?1, ?2, ?3, 1) " +
+        "ON CONFLICT (mode, tx, ty) DO UPDATE SET n = n + 1").bind(mode, Math.floor(x / TILE), Math.floor(y / TILE)));
+    }
+    await env.STATS.batch(statements);
+    return new Response(null, { status: 204 });
+  }
+  if (request.method !== "GET")
+    return new Response("Method not allowed", { status: 405, headers: { Allow: "GET, POST" } });
+
+  const mode = url.searchParams.get("mode");
+  if (!MODES.has(mode))
+    return new Response("Bad mode", { status: 400 });
+  // Everyone asks for the same few answers; keep each for half a minute.
+  const cache = caches.default;
+  const key = new Request(`${url.origin}/api/stats?mode=${mode}`);
+  const cached = await cache.match(key);
+  if (cached)
+    return cached;
+  const [counts, deaths] = await env.STATS.batch([
+    env.STATS.prepare("SELECT kind, n FROM counts WHERE mode = ?1").bind(mode),
+    env.STATS.prepare("SELECT tx, ty, n FROM deaths WHERE mode = ?1 ORDER BY n DESC LIMIT ?2").bind(mode, MARKS),
+  ]);
+  const n = Object.fromEntries(counts.results.map((r) => [r.kind, r.n]));
+  const response = json({
+    mode, attempts: n.attempt || 0, deaths: n.death || 0, clears: n.clear || 0,
+    tile: TILE, marks: deaths.results.map((r) => [r.tx, r.ty, r.n]),
+  }, { headers: { "Cache-Control": "public, max-age=30" } });
+  ctx.waitUntil(cache.put(key, response.clone()));
+  return response;
+}
 
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
+    if (url.pathname === "/api/stats")
+      return stats(request, env, ctx);
     if (url.pathname !== "/supertux2.data")
       return new Response("Not found", { status: 404 });
     if (request.method !== "GET" && request.method !== "HEAD")

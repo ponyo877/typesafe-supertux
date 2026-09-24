@@ -31,6 +31,7 @@
 #include "object/camera.hpp"
 #include "object/endsequence_fireworks.hpp"
 #include "object/endsequence_walk.hpp"
+#include "object/firefly.hpp"
 #include "object/level_time.hpp"
 #include "object/music_object.hpp"
 #include "object/player.hpp"
@@ -316,6 +317,13 @@ GameSession::restart_level(bool after_death, bool preserve_music)
     {
       m_currentsector->activate(spawnpoint->spawnpoint);
     }
+
+#ifdef SINGLE_LEVEL_BUILD
+    // Every attempt goes from the start to the end: no checkpoints, so that
+    // attempts and deaths can be counted for everyone alike.
+    for (auto& firefly : m_currentsector->get_objects_by_type<Firefly>())
+      firefly.remove_me();
+#endif
   }
   catch (std::exception& e) {
     throw std::runtime_error(std::string("Couldn't start level: ") + e.what());

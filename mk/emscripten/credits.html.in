@@ -96,6 +96,11 @@
       <li>It starts directly in the level &ldquo;Shallow Green&rdquo; and starts over instead of returning to a menu.</li>
       <li>In the &ldquo;Trained AI&rdquo; mode, the enemies follow tactics learned by reinforcement learning: they ambush,
         intercept, keep their distance, attack from both sides, use special moves, keep chasing and dodge stomps.</li>
+      <li>There are no checkpoints: every attempt starts at the beginning of the level.</li>
+      <li>The page counts, for all players together, the attempts, deaths and clears in each mode, and on which tile of
+        the level players died. It shows these counts at the top of the screen and faint marks where players died.
+        Nothing else is recorded: no single play, no address, nothing about who played.</li>
+      <li>On touch screens, SuperTux&rsquo;s own on-screen buttons are shown.</li>
       <li>The text is always English, and content under a non-commercial license is left out (see below).</li>
     </ul>
     <p>The complete source code of this version, including the tools that built it, is at

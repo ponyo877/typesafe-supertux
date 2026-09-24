@@ -175,8 +175,40 @@ async function serveFile(req, res) {
   createReadStream(file).pipe(res);
 }
 
+// /api/stats as tools/web/cloudflare/worker.js answers it, kept in memory
+// (it starts empty every time), for trying mk/emscripten/stats.js locally.
+const statsCounts = new Map();   // "mode kind" -> n
+const statsDeaths = new Map();   // "mode tx ty" -> n
+async function localStats(req, res) {
+  const url = new URL(req.url, "http://localhost");
+  if (req.method === "POST") {
+    let body = "";
+    for await (const chunk of req) body += chunk;
+    let event;
+    try { event = JSON.parse(body); } catch { return send(res, 400, "bad JSON"); }
+    const { mode, kind, x, y } = event || {};
+    if (typeof mode !== "string" || !["attempt", "death", "clear"].includes(kind))
+      return send(res, 400, "bad event");
+    statsCounts.set(`${mode} ${kind}`, (statsCounts.get(`${mode} ${kind}`) || 0) + 1);
+    if (kind === "death" && Number.isFinite(x) && Number.isFinite(y)) {
+      const key = `${mode} ${Math.floor(x / 32)} ${Math.floor(y / 32)}`;
+      statsDeaths.set(key, (statsDeaths.get(key) || 0) + 1);
+    }
+    res.writeHead(204);
+    return res.end();
+  }
+  const mode = url.searchParams.get("mode");
+  const marks = [...statsDeaths].map(([key, n]) => key.split(" ")).filter(([m]) => m === mode)
+    .map(([, tx, ty]) => [Number(tx), Number(ty), statsDeaths.get(`${mode} ${tx} ${ty}`)]);
+  const n = (kind) => statsCounts.get(`${mode} ${kind}`) || 0;
+  const body = JSON.stringify({ mode, attempts: n("attempt"), deaths: n("death"), clears: n("clear"), tile: 32, marks });
+  res.writeHead(200, { "Content-Type": "application/json" });
+  res.end(body);
+}
+
 createServer((req, res) => {
-  const handler = (req.method === "POST" && req.url === "/api/jev") ? relayJev
+  const handler = req.url.startsWith("/api/stats") ? localStats
+                : (req.method === "POST" && req.url === "/api/jev") ? relayJev
                 : (req.method === "POST" && req.url === "/api/laya") ? relayLaya
                 : (req.method === "GET" || req.method === "HEAD") ? serveFile
                 : null;

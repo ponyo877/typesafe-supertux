@@ -70,9 +70,12 @@ jev_predict_landing_x(const Player& player, float ground_y)
 #include "object/bullet.hpp"
 #include "object/camera.hpp"
 #include "supertux/game_session.hpp"
+#include "supertux/gameconfig.hpp"
 #include "supertux/globals.hpp"
 #include "supertux/screen_manager.hpp"
 #include "supertux/sector.hpp"
+#include "video/drawing_context.hpp"
+#include "video/layer.hpp"
 
 namespace {
 
@@ -369,9 +372,67 @@ void send_bench(Sector& sector)
   }, json.data(), static_cast<int>(json.size()));
 }
 
+/** Where players of this mode died (x, y, share of the most deaths at one
+    spot), sent by the page (mk/emscripten/stats.js). */
+struct DeathMark { float x, y, weight; };
+std::vector<DeathMark> s_death_marks;
+bool s_death_marks_placed = false;
+
+/** What the page asked for the on-screen buttons: -1 nothing, 0 off, 1 on. */
+int s_mobile_controls = -1;
+
+/** Faint marks where other players died, drawn behind everything that moves. */
+class DeathMarks final : public GameObject
+{
+public:
+  void update(float) override {}
+  bool is_saveable() const override { return false; }
+  std::string get_class_name() const override { return "death-marks"; }
+
+  void draw(DrawingContext& context) override
+  {
+    const Camera& camera = Sector::get().get_camera();
+    const Vector view = camera.get_translation();
+    const Sizef& screen = camera.get_screen_size();
+    for (const DeathMark& mark : s_death_marks)
+    {
+      if (mark.x < view.x - TILE || mark.x > view.x + screen.width + TILE ||
+          mark.y < view.y - TILE || mark.y > view.y + screen.height + TILE)
+        continue;
+      const float size = 10.f + 8.f * mark.weight;
+      context.color().draw_filled_rect(Rectf(mark.x - size / 2.f, mark.y - size / 2.f,
+                                             mark.x + size / 2.f, mark.y + size / 2.f),
+                                       Color(0.85f, 0.1f, 0.1f, 0.12f + 0.38f * mark.weight),
+                                       size / 2.f, LAYER_OBJECTS - 5);
+    }
+  }
+};
+
 } // namespace
 
 extern "C" {
+
+/** Called by the page on touch screens: shows SuperTux's own on-screen
+    buttons (the browser does not report touch devices at startup). */
+EMSCRIPTEN_KEEPALIVE
+void
+jev_set_mobile_controls(int on)
+{
+  // The page may ask before the config exists; tick() applies it.
+  s_mobile_controls = on != 0 ? 1 : 0;
+}
+
+/** Called by the page with where players died: `count` triples of x, y and
+    weight (0 to 1) at `data`. */
+EMSCRIPTEN_KEEPALIVE
+void
+jev_set_death_marks(const float* data, int count)
+{
+  s_death_marks.clear();
+  for (int i = 0; i < count; ++i)
+    s_death_marks.push_back({ data[3 * i], data[3 * i + 1], std::clamp(data[3 * i + 2], 0.f, 1.f) });
+  s_death_marks_placed = false;
+}
 
 /** Called by the page once the decision model has answered. */
 EMSCRIPTEN_KEEPALIVE
@@ -493,6 +554,18 @@ namespace jev_bridge {
 void
 tick(Sector& sector, float dt_sec)
 {
+  if (s_mobile_controls >= 0 && g_config)
+    g_config->mobile_controls = s_mobile_controls == 1;
+
+  // A new level (or new marks) gets the object that draws the marks.
+  if (!s_death_marks_placed && !s_death_marks.empty() && !sector.in_worldmap())
+  {
+    for (auto& old : sector.get_objects_by_type<DeathMarks>())
+      old.remove_me();
+    sector.add<DeathMarks>();
+    s_death_marks_placed = true;
+  }
+
   if (s_bench_interval > 0.f && !sector.in_worldmap())
   {
     s_time_since_bench += dt_sec;
@@ -668,6 +741,9 @@ tick(Sector& sector, float dt_sec)
 void
 event(const char* type, const char* detail)
 {
+  if (std::string(type) == "restart")
+    s_death_marks_placed = false;  // the level is loaded anew
+
   // Where the player is says how far this life got; the state deliberately
   // carries no coordinates, but a benchmark needs them.
   float x = 0.f;

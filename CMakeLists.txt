@@ -410,7 +410,7 @@ if(WIN32)
 endif()
 
 if(EMSCRIPTEN)
-  target_link_options(supertux2 PUBLIC -sEXPORTED_FUNCTIONS=['_main','_set_resolution','_save_config','_onDownloadProgress','_onDownloadFinished','_onDownloadError','_onDownloadAborted','_getExceptionMessage','_jev_set_order','_jev_set_send_interval','_jev_set_options','_jev_set_turbo','_jev_set_player_input','_jev_set_bench','_jev_bench_restart','_jev_bench_warp'] PUBLIC -sEXPORTED_RUNTIME_METHODS=['ccall','cwrap'])
+  target_link_options(supertux2 PUBLIC -sEXPORTED_FUNCTIONS=['_main','_set_resolution','_save_config','_onDownloadProgress','_onDownloadFinished','_onDownloadError','_onDownloadAborted','_getExceptionMessage','_jev_set_order','_jev_set_send_interval','_jev_set_options','_jev_set_turbo','_jev_set_player_input','_jev_set_bench','_jev_bench_restart','_jev_bench_warp','_jev_set_death_marks','_jev_set_mobile_controls','_malloc','_free'] PUBLIC -sEXPORTED_RUNTIME_METHODS=['ccall','cwrap','HEAPF32'])
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   # This option makes symbol names available for libc's backtrace().
   target_link_options(supertux2 PUBLIC -rdynamic)
