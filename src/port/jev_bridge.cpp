@@ -74,8 +74,12 @@ jev_predict_landing_x(const Player& player, float ground_y)
 #include "supertux/globals.hpp"
 #include "supertux/screen_manager.hpp"
 #include "supertux/sector.hpp"
+#include <physfs.h>
+
 #include "video/drawing_context.hpp"
 #include "video/layer.hpp"
+#include "video/paint_style.hpp"
+#include "video/surface.hpp"
 
 namespace {
 
@@ -378,6 +382,11 @@ struct DeathMark { float x, y, weight; };
 std::vector<DeathMark> s_death_marks;
 bool s_death_marks_placed = false;
 
+/** The headstone the page writes into the data directory (OpenMoji, not in
+    the data package, so that adding it did not change the package). */
+const char* const DEATH_ICON = "images/engine/death-mark.png";
+bool s_death_icon_written = false;
+
 /** What the page asked for the on-screen buttons: -1 nothing, 0 off, 1 on. */
 int s_mobile_controls = -1;
 
@@ -391,21 +400,42 @@ public:
 
   void draw(DrawingContext& context) override
   {
+    if (!m_icon && !m_icon_tried && s_death_icon_written)
+    {
+      m_icon_tried = true;
+      try { m_icon = Surface::from_file(DEATH_ICON); } catch (const std::exception&) {}
+    }
+
     const Camera& camera = Sector::get().get_camera();
     const Vector view = camera.get_translation();
     const Sizef& screen = camera.get_screen_size();
     for (const DeathMark& mark : s_death_marks)
     {
       if (mark.x < view.x - TILE || mark.x > view.x + screen.width + TILE ||
-          mark.y < view.y - TILE || mark.y > view.y + screen.height + TILE)
+          mark.y < view.y - TILE || mark.y > view.y + screen.height + 2.f * TILE)
         continue;
-      const float size = 10.f + 8.f * mark.weight;
-      context.color().draw_filled_rect(Rectf(mark.x - size / 2.f, mark.y - size / 2.f,
-                                             mark.x + size / 2.f, mark.y + size / 2.f),
-                                       Color(0.85f, 0.1f, 0.1f, 0.12f + 0.38f * mark.weight),
-                                       size / 2.f, LAYER_OBJECTS - 5);
+      if (m_icon)
+      {
+        // A headstone standing where the player's feet were.
+        const float size = 22.f + 10.f * mark.weight;
+        const float feet = mark.y + TILE / 2.f;
+        context.color().draw_surface_scaled(m_icon, Rectf(mark.x - size / 2.f, feet - size, mark.x + size / 2.f, feet),
+                                            LAYER_OBJECTS - 5, PaintStyle().set_alpha(0.35f + 0.5f * mark.weight));
+      }
+      else
+      {
+        const float size = 10.f + 8.f * mark.weight;
+        context.color().draw_filled_rect(Rectf(mark.x - size / 2.f, mark.y - size / 2.f,
+                                               mark.x + size / 2.f, mark.y + size / 2.f),
+                                         Color(0.85f, 0.1f, 0.1f, 0.12f + 0.38f * mark.weight),
+                                         size / 2.f, LAYER_OBJECTS - 5);
+      }
     }
   }
+
+private:
+  SurfacePtr m_icon;
+  bool m_icon_tried = false;
 };
 
 } // namespace
@@ -420,6 +450,27 @@ jev_set_mobile_controls(int on)
 {
   // The page may ask before the config exists; tick() applies it.
   s_mobile_controls = on != 0 ? 1 : 0;
+}
+
+/** Where the data directory is, for the page to put files into it; empty
+    until PhysFS is set up. */
+EMSCRIPTEN_KEEPALIVE
+const char*
+jev_data_dir()
+{
+  // Asked of a file every build has: a directory may be found under another
+  // search path first (images/credits, for one).
+  const char* dir = PHYSFS_getRealDir("images/engine/menu/score-backdrop.png");
+  return dir ? dir : "";
+}
+
+/** Called by the page once it has written the headstone (DEATH_ICON). */
+EMSCRIPTEN_KEEPALIVE
+void
+jev_death_icon_written()
+{
+  s_death_icon_written = true;
+  s_death_marks_placed = false;  // the marks object is made anew and loads it
 }
 
 /** Called by the page with where players died: `count` triples of x, y and

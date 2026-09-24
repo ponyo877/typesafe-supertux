@@ -120,6 +120,15 @@
       font-size: 15px;
     }
 
+    .mode .count {
+      flex: none;
+      margin: 0;
+      min-height: 1.4em;
+      font-size: 13px;
+      color: var(--muted);
+      text-align: center;
+    }
+
     .start {
       display: block;
       padding: 12px 0;
@@ -205,11 +214,13 @@
         <h2>Classic</h2>
         <p>The level as it was made, with the original enemies.</p>
         <a class="start" href="play.html?ai=off">START</a>
+        <p class="count" data-mode="off"></p>
       </section>
       <section class="mode trained">
         <h2>Trained AI <span class="tag">self-play</span></h2>
         <p>Enemies that learned their tactics by playing against a Tux that learned too.</p>
         <a class="start" href="play.html?ai=coevo4">START</a>
+        <p class="count" data-mode="coevo4"></p>
       </section>
     </div>
 
@@ -227,6 +238,19 @@
       labeled by Claude (Anthropic), then learned by playing; earlier modes used answers precomputed with Laya by
       Convai Innovations (Apache 2.0). <a href="credits.html">Full credits and licenses</a>.</p>
   </footer>
+  <script>
+    // Everyone's tries and clears in each mode (tools/web/cloudflare/worker.js).
+    for (const count of document.querySelectorAll(".count[data-mode]")) {
+      fetch("api/stats?mode=" + count.dataset.mode)
+        .then((response) => response.ok ? response.json() : null)
+        .then((stats) => {
+          if (stats)
+            count.textContent = stats.attempts.toLocaleString("en-US") + " tries \u00b7 " +
+                                stats.clears.toLocaleString("en-US") + " clears by everyone";
+        })
+        .catch(() => {});
+    }
+  </script>
 </body>
 
 </html>

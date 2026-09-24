@@ -15,8 +15,11 @@
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 // Everyone's plays of this mode: how many attempts, deaths and clears there
-// have been, shown at the top of the screen, and faint marks in the level
-// where players died, so the dangerous spots show.
+// have been, shown at the top of the screen, and headstones in the level
+// where players died, fainter where fewer did, so the dangerous spots show.
+// The headstone is OpenMoji's (headstone.png, by Liz Bravo, CC BY-SA 4.0);
+// it is written into the game's data directory here rather than shipped in
+// the data package, which players already have.
 //
 // The game reports what happens through window.jev_on_event (see
 // src/port/jev_bridge.cpp). Every start of the level is an attempt (there
@@ -73,6 +76,24 @@
   }
 
   // --- the marks ------------------------------------------------------------
+
+  /** Puts the headstone where the game looks for it, once the game runs. */
+  async function giveIcon() {
+    try {
+      const bytes = new Uint8Array(await (await fetch("headstone.png")).arrayBuffer());
+      (function write() {
+        const dir = typeof Module !== "undefined" && Module._jev_data_dir && Module.UTF8ToString
+                    ? Module.UTF8ToString(Module._jev_data_dir()) : "";
+        if (!dir || typeof FS === "undefined")
+          return setTimeout(write, 1000);
+        FS.writeFile(dir.replace(/\/$/, "") + "/images/engine/death-mark.png", bytes);
+        Module._jev_death_icon_written();
+      })();
+    } catch (error) {
+      // Round marks then.
+    }
+  }
+  giveIcon();
 
   /** Hands the marks to the game, once it runs. */
   function showMarks() {

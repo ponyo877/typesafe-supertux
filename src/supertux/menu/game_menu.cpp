@@ -16,6 +16,10 @@
 
 #include "supertux/menu/game_menu.hpp"
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
+
 #include <config.h>
 
 #include "audio/sound_manager.hpp"
@@ -80,9 +84,16 @@ GameMenu::GameMenu() :
 
   add_submenu(_("Options"), MenuStorage::INGAME_OPTIONS_MENU);
 #ifdef SINGLE_LEVEL_BUILD
-  // There is nothing to abort to when the level was launched on its own
+  // There is nothing to abort to when the level was launched on its own; in
+  // the browser, the start page is where one goes instead.
   if (GameSession::current()->is_standalone())
+  {
+#ifdef __EMSCRIPTEN__
+    add_hl();
+    add_entry(MNID_LEAVE, _("Back to Start Page"));
+#endif
     return;
+  }
 #endif
   add_hl();
   add_entry(MNID_ABORTLEVEL, _("Abort Level"));
@@ -97,6 +108,12 @@ GameMenu::menu_action(MenuItem& item)
       MenuManager::instance().clear_menu_stack();
       GameSession::current()->toggle_pause();
       break;
+
+#ifdef __EMSCRIPTEN__
+    case MNID_LEAVE:
+      EM_ASM({ location.href = "./"; });
+      break;
+#endif
 
     case MNID_RESETLEVEL:
       if (g_config->confirmation_dialog)
