@@ -6,6 +6,19 @@
   <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
   <meta name="description" content="Play SuperTux directly in your browser. No installation required.">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="SuperTux: Shallow Green">
+  <meta property="og:title" content="SuperTux: Shallow Green">
+  <meta property="og:description" content="One level of SuperTux in your browser, with the original enemies or with enemies that learned their tactics by playing.">
+  <meta property="og:url" content="https://supertux.ponyo877.com/">
+  <meta property="og:image" content="https://supertux.ponyo877.com/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Tux in the forest of Shallow Green, with headstones where other players died.">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="SuperTux: Shallow Green">
+  <meta name="twitter:description" content="One level of SuperTux in your browser, with the original enemies or with enemies that learned their tactics by playing.">
+  <meta name="twitter:image" content="https://supertux.ponyo877.com/og.png">
   <link rel="icon" href="supertux2.ico?v=@SUPERTUX_VERSION_STRING@" />
   <title>Play SuperTux online</title>
   <style>
