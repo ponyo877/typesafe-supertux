@@ -36,6 +36,12 @@ namespace jev_bridge {
 /** Call once per logic step. Does nothing outside of Emscripten builds. */
 void tick(Sector& sector, float dt_sec);
 
+/** Tells the page that something worth measuring happened, by handing
+    `window.jev_on_event(json)` the type, a detail and where the player was:
+    the benchmark in tools/eval counts these instead of guessing from the
+    state. Does nothing outside of Emscripten builds. */
+void event(const char* type, const char* detail = "");
+
 } // namespace jev_bridge
 
 /* EOF */

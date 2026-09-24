@@ -136,6 +136,10 @@ public:
   inline bool has_active_sequence() const { return m_end_sequence; }
   void restart_level(bool after_death = false, bool preserve_music = false);
 
+  /** Starts the level over from the beginning once this update is done, as
+      when it is finished; for the benchmark in tools/eval. */
+  inline void request_restart() { m_restart_after_finish = true; }
+
   void toggle_pause();
   void abort_level();
   bool is_active() const;

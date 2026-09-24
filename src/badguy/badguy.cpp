@@ -31,6 +31,7 @@
 #include "object/portable.hpp"
 #include "object/sprite_particle.hpp"
 #include "object/water_drop.hpp"
+#include "port/jev_bridge.hpp"
 #include "sprite/sprite.hpp"
 #include "sprite/sprite_manager.hpp"
 #include "supertux/constants.hpp"
@@ -702,7 +703,11 @@ BadGuy::collision_player(Player& player, const CollisionHit& hit)
     //player.collision_solid(hit);
   }
   else
+  {
+    if (!player.is_recovering() && !player.is_invincible())
+      jev_bridge::event("badguy_hit", jev_event_detail().c_str());
     player.kill(false);
+  }
   return FORCE_MOVE;
 }
 
@@ -793,12 +798,19 @@ BadGuy::apply_ice_physics()
   }
 }
 
+std::string
+BadGuy::jev_event_detail() const
+{
+  return get_class_name() + ":" + std::to_string(get_uid().get_value());
+}
+
 void
 BadGuy::kill_squished(GameObject& object)
 {
   if (!is_active()) return;
 
   SoundManager::current()->play("sounds/squish.wav", get_pos());
+  jev_bridge::event("badguy_squished", jev_event_detail().c_str());
   m_physic.enable_gravity(true);
 
   m_physic.set_velocity(0, 0);
@@ -817,6 +829,8 @@ void
 BadGuy::kill_fall()
 {
   if (!is_active()) return;
+
+  jev_bridge::event("badguy_killed", jev_event_detail().c_str());
 
   if (m_frozen) {
     SoundManager::current()->play("sounds/brick.wav", get_pos());

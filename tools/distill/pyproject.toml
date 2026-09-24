@@ -1,0 +1,12 @@
+[project]
+name = "supertux-distill"
+version = "0.1.0"
+description = "Turns labeled situations into the policy table SuperTux badguys follow in the browser"
+requires-python = ">=3.11"
+dependencies = [
+  "lightgbm>=4.5",
+  "numpy>=2",
+]
+
+[tool.uv]
+package = false

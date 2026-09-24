@@ -1,0 +1,9 @@
+{
+  "name": "supertux-rl",
+  "private": true,
+  "type": "module",
+  "description": "Reinforcement learning for the badguys of the web build (see train.mjs)",
+  "dependencies": {
+    "playwright": "1.63.0"
+  }
+}

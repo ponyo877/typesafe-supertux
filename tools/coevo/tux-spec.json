@@ -1,0 +1,116 @@
+{
+ "name": "tux-llm",
+ "model": "Claude Opus 5.5 (Claude Code), distilled with LightGBM",
+ "domains": [
+  [
+   "air",
+   [
+    "ground",
+    "rising",
+    "falling"
+   ]
+  ],
+  [
+   "speed",
+   [
+    "still",
+    "walk",
+    "run"
+   ]
+  ],
+  [
+   "wall",
+   [
+    "none",
+    "near low",
+    "near high",
+    "near cliff",
+    "far low",
+    "far high",
+    "far cliff"
+   ]
+  ],
+  [
+   "gap",
+   [
+    "none",
+    "near narrow",
+    "near wide",
+    "far narrow",
+    "far wide"
+   ]
+  ],
+  [
+   "spikes",
+   [
+    "none",
+    "near",
+    "far"
+   ]
+  ],
+  [
+   "ledge",
+   [
+    "none",
+    "ahead low",
+    "ahead high",
+    "behind low",
+    "behind high",
+    "above low",
+    "above high"
+   ]
+  ],
+  [
+   "enemy",
+   [
+    "none",
+    "touching",
+    "near",
+    "medium"
+   ]
+  ],
+  [
+   "enemy_coming",
+   [
+    false,
+    true
+   ]
+  ],
+  [
+   "enemy_kind",
+   [
+    "walker",
+    "bomb",
+    "jumpy"
+   ]
+  ],
+  [
+   "enemy_above",
+   [
+    false,
+    true
+   ]
+  ],
+  [
+   "enemy_behind",
+   [
+    false,
+    true
+   ]
+  ]
+ ],
+ "orders": [
+  "run",
+  "walk",
+  "wait",
+  "back",
+  "hop",
+  "jump",
+  "long jump",
+  "high jump",
+  "back jump"
+ ],
+ "situations": "situations.jsonl",
+ "labels": "labels/part-*.jsonl",
+ "out": "tables/tux-llm.js"
+}

@@ -76,6 +76,10 @@ public:
 
   static std::string class_name() { return "badguy"; }
   virtual std::string get_class_name() const override { return class_name(); }
+
+  /** "<class>:<uid>", which says which badguy an event (jev_bridge::event)
+      was about. */
+  std::string jev_event_detail() const;
   virtual std::string get_exposed_class_name() const override { return "BadGuy"; }
   static std::string display_name() { return _("Badguy"); }
   virtual std::string get_display_name() const override { return display_name(); }

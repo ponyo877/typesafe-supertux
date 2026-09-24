@@ -68,6 +68,10 @@ jev_predict_landing_x(const Player& player, float ground_y)
 #include "badguy/badguy.hpp"
 #include "badguy/walking_badguy.hpp"
 #include "object/bullet.hpp"
+#include "object/camera.hpp"
+#include "supertux/game_session.hpp"
+#include "supertux/globals.hpp"
+#include "supertux/screen_manager.hpp"
 #include "supertux/sector.hpp"
 
 namespace {
@@ -87,6 +91,26 @@ const size_t MAX_OFFSCREEN_PURSUERS = 4;
 const float TILE = 32.f;
 
 float s_time_since_send = 0.f;
+
+/** How often the benchmark (tools/eval) gets its own view of the level, in
+    seconds; 0 means it did not ask for one. */
+float s_bench_interval = 0.f;
+float s_time_since_bench = 0.f;
+
+/** When the player last touched down, for "just landed" (tools/coevo). */
+bool s_player_was_on_ground = true;
+float s_player_landed_at = -10.f;
+const float JUST_LANDED = 0.3f;  // seconds; he cannot jump again that fast
+
+/** When the player left the ground lately, for "hopping": jumping again and
+    again, which makes him hard to catch on the ground. */
+std::vector<float> s_player_takeoffs;
+const float HOPPING_WINDOW = 2.f;  // seconds
+const size_t HOPPING_JUMPS = 2;    // takeoffs within the window
+
+/** Badguys take a zone of the level (for the co-evolved tables, which learn
+    what works where): this wide, counted from the left. */
+const float ZONE_WIDTH = 400.f;
 
 const char* order_name(JevOrder order)
 {
@@ -165,7 +189,10 @@ void write_player(std::ostream& out, const Player& player, bool rich)
       << "\",\"invincible\":" << (player.is_invincible() ? "true" : "false");
   if (rich)
     out << ",\"power\":\"" << describe_power(player) << "\""
-        << ",\"recovering\":" << (player.is_recovering() ? "true" : "false");
+        << ",\"recovering\":" << (player.is_recovering() ? "true" : "false")
+        << ",\"just_landed\":" << (g_game_time - s_player_landed_at < JUST_LANDED ? "true" : "false")
+        << ",\"hopping\":" << (s_player_takeoffs.size() >= HOPPING_JUMPS ? "true" : "false")
+        << ",\"speed\":\"" << (std::abs(vx) < 30.f ? "still" : std::abs(vx) < 250.f ? "walk" : "run") << "\"";
   out << "}";
 }
 
@@ -210,6 +237,136 @@ void manage_pursuit(Sector& sector)
             [](const auto& a, const auto& b) { return a.first < b.first; });
   for (size_t i = MAX_OFFSCREEN_PURSUERS; i < offscreen.size(); ++i)
     offscreen[i].second->stop_jev_pursuit();
+}
+
+/** How far ahead of `player`, up to `range`, the first tile of `type` blocks
+    a probe `height` tall starting `top` below the player's feet; -1 if none. */
+float probe_ahead(Sector& sector, const Rectf& bbox, float dir, float top, float height,
+                  float range, uint32_t type, bool free_means_hit)
+{
+  for (float d = 4.f; d <= range; d += 8.f)
+  {
+    const float x = dir > 0.f ? bbox.get_right() + d : bbox.get_left() - d;
+    const Rectf probe(std::min(x, x + dir * 8.f), bbox.get_bottom() + top,
+                      std::max(x, x + dir * 8.f), bbox.get_bottom() + top + height);
+    const bool free = sector.is_free_of_tiles(probe, false, type);
+    if (free == free_means_hit)
+      return d;
+  }
+  return -1.f;
+}
+
+/** How high the wall starting `d` ahead of the player (to the right) is. */
+float wall_height(Sector& sector, const Rectf& bbox, float d)
+{
+  const float x = bbox.get_right() + d + 2.f;
+  float height = 0.f;
+  while (height < 8.f * TILE &&
+         !sector.is_free_of_tiles(Rectf(x, bbox.get_bottom() - height - TILE + 2.f, x + 8.f, bbox.get_bottom() - height - 2.f)))
+    height += TILE;
+  return height;
+}
+
+/** How wide the gap starting `d` ahead of the player (to the right) is. */
+float gap_width(Sector& sector, const Rectf& bbox, float d)
+{
+  const float x = bbox.get_right() + d;
+  for (float w = 0.f; w < 8.f * TILE; w += 8.f)
+    if (!sector.is_free_of_tiles(Rectf(x + w, bbox.get_bottom() + 2.f, x + w + 8.f, bbox.get_bottom() + 3.f * TILE)))
+      return w;
+  return 8.f * TILE;
+}
+
+/** The nearest spot above the player to jump onto: ground with room for the
+    player on it, 1.5 to 5 tiles up and at most 4 tiles to either side.
+    Sets `dx` (to its middle) and `dy` (up, positive), or returns false. */
+bool find_ledge(Sector& sector, const Rectf& bbox, float& dx, float& dy)
+{
+  const float cx = bbox.get_middle().x;
+  const float bottom = bbox.get_bottom();
+  float best = 1e9f;
+  for (float x = -4.f * TILE; x <= 4.f * TILE; x += TILE / 2.f)
+  {
+    for (float h = 1.5f * TILE; h <= 5.f * TILE; h += TILE / 4.f)
+    {
+      const float top = bottom - h;
+      const bool floor = !sector.is_free_of_tiles(Rectf(cx + x - 6.f, top + 1.f, cx + x + 6.f, top + 6.f));
+      const bool room = sector.is_free_of_tiles(Rectf(cx + x - 12.f, top - 40.f, cx + x + 12.f, top - 1.f));
+      if (floor && room)
+      {
+        const float cost = std::abs(x) + h / 2.f;
+        if (cost < best)
+        {
+          best = cost;
+          dx = x;
+          dy = h;
+        }
+        break;  // the lowest spot in this column
+      }
+    }
+  }
+  return best < 1e9f;
+}
+
+/** The benchmark's view of the level: coordinates and what lies ahead, which
+    the decision models never see. Handed to `window.jev_on_bench(json)`. */
+void send_bench(Sector& sector)
+{
+  const auto players = sector.get_players();
+  if (players.empty())
+    return;
+  const Player& player = *players.front();
+  const Rectf& bbox = player.get_bbox();
+  const float dir = player.get_velocity_x() < -10.f ? -1.f : 1.f;
+
+  std::ostringstream out;
+  out << "{\"x\":" << bbox.get_middle().x << ",\"y\":" << bbox.get_middle().y
+      << ",\"vx\":" << player.get_velocity_x() << ",\"vy\":" << player.get_velocity_y()
+      << ",\"ground\":" << (player.on_ground() ? "true" : "false")
+      << ",\"big\":" << (player.is_big() ? "true" : "false")
+      << ",\"alive\":" << (player.is_active() ? "true" : "false")
+      << ",\"safe\":" << (player.is_recovering() || player.is_invincible() ? "true" : "false")
+      // A wall: solid tiles at body height. A gap: nothing solid within three
+      // tiles below the feet. Spikes: hurting tiles at or just below the feet.
+      << ",\"wall\":" << probe_ahead(sector, bbox, dir, -bbox.get_height() + 4.f, bbox.get_height() - 8.f, 96.f, Tile::SOLID, false)
+      << ",\"gap\":" << probe_ahead(sector, bbox, dir, 2.f, 3.f * TILE, 128.f, Tile::SOLID, true)
+      << ",\"spikes\":" << probe_ahead(sector, bbox, dir, -8.f, TILE, 128.f, Tile::HURTS, false);
+
+  // The same to the right, where the level goes, whichever way the player
+  // moves; with how high the wall and how wide the gap are, and a spot above
+  // to jump onto (tools/coevo).
+  const float wall_r = probe_ahead(sector, bbox, 1.f, -bbox.get_height() + 4.f, bbox.get_height() - 8.f, 160.f, Tile::SOLID, false);
+  const float gap_r = probe_ahead(sector, bbox, 1.f, 2.f, 3.f * TILE, 160.f, Tile::SOLID, true);
+  float ledge_dx = 0.f, ledge_dy = 0.f;
+  // Looked for only on the ground, where a jump can start; it is the costly one.
+  const bool ledge = player.on_ground() && find_ledge(sector, bbox, ledge_dx, ledge_dy);
+  out << ",\"wall_r\":" << wall_r
+      << ",\"wall_h\":" << (wall_r >= 0.f ? wall_height(sector, bbox, wall_r) : 0.f)
+      << ",\"gap_r\":" << gap_r
+      << ",\"gap_w\":" << (gap_r >= 0.f ? gap_width(sector, bbox, gap_r) : 0.f)
+      << ",\"spikes_r\":" << probe_ahead(sector, bbox, 1.f, -8.f, TILE, 160.f, Tile::HURTS, false)
+      << ",\"ledge\":" << (ledge ? "true" : "false")
+      << ",\"ledge_dx\":" << ledge_dx << ",\"ledge_dy\":" << ledge_dy
+      << ",\"enemies\":[";
+  bool first = true;
+  for (auto& badguy : sector.get_objects_by_type<BadGuy>())
+  {
+    if (!badguy.is_valid() || !badguy.is_active())
+      continue;
+    const Vector d = badguy.get_bbox().get_middle() - bbox.get_middle();
+    if (std::abs(d.x) > 640.f || std::abs(d.y) > 400.f)
+      continue;
+    out << (first ? "" : ",") << "[" << d.x << "," << d.y << "," << badguy.get_physic().get_velocity_x()
+        << "," << badguy.get_physic().get_velocity_y() << ",\"" << badguy.get_class_name() << "\"]";
+    first = false;
+  }
+  out << "]}";
+
+  const std::string json = out.str();
+  EM_ASM({
+    if (window.jev_on_bench)
+      window.jev_on_bench(new TextDecoder().decode(HEAPU8.slice($0, $0 + $1)));
+  }, json.data(), static_cast<int>(json.size()));
 }
 
 } // namespace
@@ -257,6 +414,78 @@ jev_set_options(int flags, float speed_scale)
   s_speed_scale = std::clamp(speed_scale, 0.5f, 2.f);
 }
 
+/** Called by the benchmark (tools/eval) to play many logic steps per browser
+    frame. The step itself stays the same, so the game behaves as it does at
+    normal speed; 0 plays in real time. */
+EMSCRIPTEN_KEEPALIVE
+void
+jev_set_turbo(int steps)
+{
+  if (ScreenManager::current())
+    ScreenManager::current()->set_turbo(steps);
+}
+
+/** Called by the benchmark to get its own view of the level every
+    `seconds` (0 stops it), through `window.jev_on_bench(json)`. */
+EMSCRIPTEN_KEEPALIVE
+void
+jev_set_bench(float seconds)
+{
+  s_bench_interval = std::max(seconds, 0.f);
+  s_time_since_bench = 0.f;
+}
+
+/** Called by the benchmark to start the level over, with every badguy back
+    in its place, once the current logic step is done. */
+EMSCRIPTEN_KEEPALIVE
+void
+jev_bench_restart()
+{
+  if (GameSession::current())
+    GameSession::current()->request_restart();
+}
+
+/** Called by the benchmark to put Tux on the ground at (x, bottom), so each
+    run can start where the part of the level it measures begins. */
+EMSCRIPTEN_KEEPALIVE
+void
+jev_bench_warp(float x, float bottom)
+{
+  if (!Sector::current())
+    return;
+  const auto players = Sector::current()->get_players();
+  if (players.empty())
+    return;
+
+  Player& player = *players.front();
+  const Rectf& bbox = player.get_bbox();
+  player.set_pos(Vector(x - bbox.get_width() / 2.f, bottom - bbox.get_height() - 1.f));
+  player.get_physic().set_velocity(0.f, 0.f);
+  Sector::current()->get_camera().reset(player.get_pos());
+}
+
+/** Called by the benchmark to play Tux from the page. The bits are LEFT,
+    RIGHT, UP, DOWN, JUMP and ACTION, in that order. */
+EMSCRIPTEN_KEEPALIVE
+void
+jev_set_player_input(int bits)
+{
+  if (!Sector::current())
+    return;
+  const auto players = Sector::current()->get_players();
+  if (players.empty())
+    return;
+
+  // A death starts the level over with a new player, so take the controller
+  // every time rather than once.
+  Player& player = *players.front();
+  player.use_scripting_controller(true);
+
+  static const char* const CONTROLS[] = { "left", "right", "up", "down", "jump", "action" };
+  for (int i = 0; i < 6; ++i)
+    player.do_scripting_controller(CONTROLS[i], (bits & (1 << i)) != 0);
+}
+
 } // extern "C"
 
 namespace jev_bridge {
@@ -264,6 +493,32 @@ namespace jev_bridge {
 void
 tick(Sector& sector, float dt_sec)
 {
+  if (s_bench_interval > 0.f && !sector.in_worldmap())
+  {
+    s_time_since_bench += dt_sec;
+    if (s_time_since_bench >= s_bench_interval)
+    {
+      s_time_since_bench = 0.f;
+      send_bench(sector);
+    }
+  }
+
+  if (!sector.in_worldmap())
+  {
+    const auto players = sector.get_players();
+    if (!players.empty())
+    {
+      const bool on_ground = players.front()->on_ground();
+      if (on_ground && !s_player_was_on_ground)
+        s_player_landed_at = g_game_time;
+      if (!on_ground && s_player_was_on_ground && players.front()->get_velocity_y() < 0.f)
+        s_player_takeoffs.push_back(g_game_time);
+      while (!s_player_takeoffs.empty() && g_game_time - s_player_takeoffs.front() > HOPPING_WINDOW)
+        s_player_takeoffs.erase(s_player_takeoffs.begin());
+      s_player_was_on_ground = on_ground;
+    }
+  }
+
   s_time_since_send += dt_sec;
   if (s_time_since_send < s_send_interval)
     return;
@@ -304,6 +559,19 @@ tick(Sector& sector, float dt_sec)
     return;
 
   const bool rich = s_options & JEV_OPT_RICH;
+
+  // Badguys already going for the player, close to him (for "an ally is
+  // attacking", so the others can do something else).
+  std::vector<const BadGuy*> attackers;
+  for (const BadGuy* other : everyone)
+  {
+    const JevOrder order = other->get_jev_order();
+    const bool attacking = order == JevOrder::CHARGE || order == JevOrder::JUMP || order == JevOrder::FLANK ||
+                           order == JevOrder::INTERCEPT || order == JevOrder::SPECIAL;
+    if (attacking && std::abs(other->get_bbox().get_middle().x - nearest->get_bbox().get_middle().x) < 3.f * TILE)
+      attackers.push_back(other);
+  }
+
   std::ostringstream out;
   out << "{\"player\":";
   write_player(out, *nearest, rich);
@@ -377,7 +645,11 @@ tick(Sector& sector, float dt_sec)
           << ",\"ally_beyond_player\":" << (ally_beyond ? "true" : "false")
           << ",\"landing\":\"" << landing << "\""
           << ",\"special\":\"" << badguy->jev_special_status() << "\""
-          << ",\"fireball_coming\":" << (fireball_coming(sector, bbox) ? "true" : "false");
+          << ",\"fireball_coming\":" << (fireball_coming(sector, bbox) ? "true" : "false")
+          << ",\"close\":" << (std::abs(dx) < TILE ? "true" : "false")
+          << ",\"ally_attacking\":" << (std::any_of(attackers.begin(), attackers.end(),
+                                                    [badguy](const BadGuy* a) { return a != badguy; }) ? "true" : "false")
+          << ",\"zone\":" << static_cast<int>(std::max(bbox.get_middle().x, 0.f) / ZONE_WIDTH);
     }
     out << "}";
   }
@@ -393,6 +665,35 @@ tick(Sector& sector, float dt_sec)
   }, json.data(), static_cast<int>(json.size()));
 }
 
+void
+event(const char* type, const char* detail)
+{
+  // Where the player is says how far this life got; the state deliberately
+  // carries no coordinates, but a benchmark needs them.
+  float x = 0.f;
+  float y = 0.f;
+  if (Sector::current())
+  {
+    const auto players = Sector::current()->get_players();
+    if (!players.empty())
+    {
+      const Vector middle = players.front()->get_bbox().get_middle();
+      x = middle.x;
+      y = middle.y;
+    }
+  }
+
+  std::ostringstream out;
+  out << "{\"type\":\"" << type << "\",\"detail\":\"" << detail
+      << "\",\"x\":" << x << ",\"y\":" << y << ",\"t\":" << g_game_time << "}";
+
+  const std::string json = out.str();
+  EM_ASM({
+    if (window.jev_on_event)
+      window.jev_on_event(new TextDecoder().decode(HEAPU8.slice($0, $0 + $1)));
+  }, json.data(), static_cast<int>(json.size()));
+}
+
 } // namespace jev_bridge
 
 #else
@@ -401,6 +702,11 @@ namespace jev_bridge {
 
 void
 tick(Sector&, float)
+{
+}
+
+void
+event(const char*, const char*)
 {
 }
 

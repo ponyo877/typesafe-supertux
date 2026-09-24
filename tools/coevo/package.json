@@ -1,0 +1,9 @@
+{
+  "name": "supertux-coevo",
+  "private": true,
+  "type": "module",
+  "description": "Co-evolution of Tux and the badguys (see coevo.mjs)",
+  "dependencies": {
+    "playwright": "1.63.0"
+  }
+}

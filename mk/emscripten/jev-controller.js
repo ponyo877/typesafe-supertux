@@ -85,7 +85,7 @@
   // so Laya's answers are precomputed into laya-table.js
   // (tools/laya-server/export-table.mjs). Looking them up gives exactly what
   // the model would say, in any browser, without downloading it.
-  async function lookUp(request) {
+  function lookUp(request) {
     const table = window.LAYA_TABLE;
     if (!table || table.instructions !== LayaPrompt.INSTRUCTIONS ||
         JSON.stringify(table.criteria) !== JSON.stringify(LayaPrompt.CRITERIA))
@@ -133,7 +133,7 @@
 
   // laya-rich-table.js holds Laya's answer to every question the game can
   // produce (tools/laya-server/export-rich-table.mjs).
-  async function lookUpRich(request) {
+  function lookUpRich(request) {
     for (const question of LayaRichPrompt.QUESTIONS) {
       if (!richTableEntry(question))
         throw new Error("laya-rich-table.js was made for another prompt; run tools/laya-server/export-rich-table.mjs");
@@ -144,6 +144,72 @@
         throw new Error("laya-rich-table.js has no answer for \"" + sentence + "\"; run tools/laya-server/export-rich-table.mjs");
       return p;
     }, window.LAYA_RICH_TABLE.model + " (table)");
+  }
+
+  // --- Policy tables: one order for every combination of the rich facts ----
+  // Written to <name>-table.js by tools/distill/fit.py (from a model's labels)
+  // or by tools/rl (learned in play); the facts come from laya-rich-prompt.js.
+
+  // Some tables (tools/coevo) also look at facts beyond the rich prompt's.
+  // They keep the rich prompt's table as it is and list, for the finer
+  // situations where they learned to do otherwise, what to do instead.
+  const EXTRA_FACTS = {
+    landed: (player) => !!player.just_landed,
+    speed: (player) => player.speed,
+    size: (player) => player.size,
+    close: (player, enemy) => !!enemy.close,
+    ally_attacking: (player, enemy) => !!enemy.ally_attacking,
+    zone: (player, enemy) => enemy.zone,
+    hopping: (player) => !!player.hopping,
+  };
+
+  /** The index of the extra facts, given the table's "extra" domains. */
+  function extraIndex(extra, player, enemy) {
+    let index = 0;
+    for (const [fact, values] of extra) {
+      const code = values.indexOf(EXTRA_FACTS[fact](player, enemy));
+      index = index * values.length + Math.max(code, 0);
+    }
+    return index;
+  }
+  window.JevPolicy = { EXTRA_FACTS, extraIndex };
+
+  const policies = {};
+  function policy(name) {
+    if (!policies[name]) {
+      const table = window.POLICY_TABLES && window.POLICY_TABLES[name];
+      if (!table)
+        throw new Error(name + "-table.js is missing; see tools/distill/fit.py");
+      const bytes = Uint8Array.from(atob(table.packed), (c) => c.charCodeAt(0));
+      policies[name] = { table, bytes };
+    }
+    return policies[name];
+  }
+
+  function lookUpPolicy(name) {
+    return function (request) {
+      const { table, bytes } = policy(name);
+      const answers = {};
+      for (const [id, enemy] of Object.entries(request.state.enemies)) {
+        const facts = LayaRichPrompt.facts(request.state.player, enemy);
+        let index = 0;
+        for (const [fact, values] of table.domains) {
+          const code = values.indexOf(facts[fact]);
+          if (code < 0)
+            throw new Error(name + "-table.js does not know " + fact + " = " + facts[fact]);
+          index = index * values.length + code;
+        }
+        let code = (bytes[index >> 1] >> ((index & 1) * 4)) & 15;
+        if (table.extra) {
+          const size = table.extra.reduce((n, [, values]) => n * values.length, 1);
+          const finer = table.delta[index * size + extraIndex(table.extra, request.state.player, enemy)];
+          if (finer !== undefined)
+            code = finer;
+        }
+        answers[id] = { choice: table.orders[code], confidence: 1 };
+      }
+      return { model: table.model + " (table)", answers };
+    };
   }
 
   // The same questions asked live (laya-mlx), e.g. to try a changed prompt
@@ -228,6 +294,7 @@
       buildQuestions: (state) => LayaPrompt.questions(state),
       shield: true,
       decide: lookUp,
+      decideSync: lookUp,
     },
 
     // The rich prompt: more facts, more tactics (ambush, intercept, stalk,
@@ -240,6 +307,100 @@
       buildQuestions: () => ({}),
       shield: true,
       decide: lookUpRich,
+      decideSync: lookUpRich,
+    },
+
+    // The rich facts and behaviour, with the tactic for every situation
+    // labeled by Claude Opus 5.5 and generalised with LightGBM
+    // (tools/distill). Precomputed; runs in any browser.
+    llm: {
+      sendInterval: 0.05,
+      options: richOptions,
+      minConfidence: {},
+      buildQuestions: () => ({}),
+      shield: true,
+      decide: lookUpPolicy("llm"),
+      table: "llm",
+      decideSync: lookUpPolicy("llm"),
+    },
+
+    // The same, with the tactics learned in play by reinforcement learning
+    // (tools/rl), starting from the llm table. Precomputed.
+    rl: {
+      sendInterval: 0.05,
+      options: richOptions,
+      minConfidence: {},
+      buildQuestions: () => ({}),
+      shield: true,
+      decide: lookUpPolicy("rl"),
+      table: "rl",
+      decideSync: lookUpPolicy("rl"),
+    },
+
+    // The second training (tools/rl/train.mjs): shared estimates, orders
+    // changed only beyond doubt, rewards for teamwork too.
+    rl2: {
+      sendInterval: 0.05,
+      options: richOptions,
+      minConfidence: {},
+      buildQuestions: () => ({}),
+      shield: true,
+      decide: lookUpPolicy("rl2"),
+      table: "rl2",
+      decideSync: lookUpPolicy("rl2"),
+    },
+
+    // The badguys of the fifth generation of co-evolution (tools/coevo),
+    // which learned against a Tux that learned too. Precomputed.
+    coevo: {
+      sendInterval: 0.05,
+      options: richOptions,
+      minConfidence: {},
+      buildQuestions: () => ({}),
+      shield: true,
+      decide: lookUpPolicy("coevo"),
+      table: "coevo",
+      decideSync: lookUpPolicy("coevo"),
+    },
+
+    // The champion of co-evolution with finer facts (tools/coevo --extend):
+    // it also knows where in the level it is and when the player has just
+    // landed, and learned for itself when to retreat, so no shield.
+    coevo2: {
+      sendInterval: 0.05,
+      options: richOptions,
+      minConfidence: {},
+      buildQuestions: () => ({}),
+      shield: false,
+      decide: lookUpPolicy("coevo2"),
+      table: "coevo2",
+      decideSync: lookUpPolicy("coevo2"),
+    },
+
+    // The champion of the third co-evolution: also trained against eight bot
+    // styles on their own and against exploiters looking for its holes.
+    coevo3: {
+      sendInterval: 0.05,
+      options: richOptions,
+      minConfidence: {},
+      buildQuestions: () => ({}),
+      shield: false,
+      decide: lookUpPolicy("coevo3"),
+      table: "coevo3",
+      decideSync: lookUpPolicy("coevo3"),
+    },
+
+    // The champion of the fourth co-evolution: also sees whether the player
+    // keeps jumping, and trained against jumpers too.
+    coevo4: {
+      sendInterval: 0.05,
+      options: richOptions,
+      minConfidence: {},
+      buildQuestions: () => ({}),
+      shield: false,
+      decide: lookUpPolicy("coevo4"),
+      table: "coevo4",
+      decideSync: lookUpPolicy("coevo4"),
     },
 
     // Laya running on this Mac's GPU through laya-mlx (tools/laya-server),
@@ -292,6 +453,16 @@
   // Without ?ai= the badguys behave as usual (the start page picks the mode).
   const providerName = params.get("ai") || "off";
   const provider = providers[providerName];
+
+  // A policy table is a few hundred KB, so only the chosen mode's is loaded,
+  // next to this script and with the same version. It is there long before
+  // the game has loaded its data.
+  if (provider && provider.table) {
+    const script = document.createElement("script");
+    const version = document.currentScript ? new URL(document.currentScript.src).search : "";
+    script.src = provider.table + "-table.js" + version;
+    document.head.appendChild(script);
+  }
   const useShield = !!(provider && provider.shield) && params.get("shield") !== "0";
   const sendInterval = params.has("interval") ? Number(params.get("interval")) : provider && provider.sendInterval;
   const options = params.has("options") ? Number(params.get("options")) : provider ? provider.options : 0;
@@ -306,6 +477,7 @@
   const tactics = [];           // recent orders, for the mix shown on the HUD
   let answered = 0;
   let overridden = 0;
+  let lastShown = 0;            // the HUD is written at most ten times a second
 
   const hud = document.createElement("div");
   hud.id = "jev_hud";
@@ -326,6 +498,54 @@
       .map(([order, n]) => order + " " + Math.round(100 * n / tactics.length) + "%").join("  ");
   }
 
+  /** Hands the model's answers to the game and keeps the HUD up to date. */
+  function applyAnswers(state, result, started) {
+    const now = performance.now();
+
+    if (!setOrder)
+      setOrder = Module.cwrap("jev_set_order", null, ["number", "number", "number"]);
+
+    // Under turbo (tools/eval) this runs hundreds of times a second, where
+    // writing the HUD would cost more than the game itself.
+    const show = now - lastShown >= 100;
+    const lines = [];
+    for (const [id, answer] of Object.entries(result.answers || {})) {
+      let choice = answer.choice;
+      let note = answer.because && answer.because !== choice ? "  (" + answer.because + ")" : "";
+      answered++;
+      if (useShield && shielded(state, id) && choice !== "retreat") {
+        note = "  (shield: " + choice + ")";
+        choice = "retreat";
+        overridden++;
+      }
+      const confidence = answer.confidence ?? 1;
+      const confident = confidence >= (provider.minConfidence[choice] ?? 0);
+      if (ORDERS[choice] !== undefined && confident) {
+        setOrder(Number(id.slice(1)), ORDERS[choice], ORDER_TTL);
+        tactics.push(choice);
+        if (tactics.length > 300)
+          tactics.shift();
+      }
+      if (!show)
+        continue;
+      const kind = state.enemies[id] ? state.enemies[id].kind.slice(0, 6) : "";
+      lines.push(id.padEnd(10) + " " + kind.padEnd(6) + " " + String(choice).padEnd(9) + " " + confidence.toFixed(2) +
+                 (confident ? "" : "  (ignored)") + note);
+    }
+
+    recent.push(now);
+    while (recent.length && recent[0] < now - 1000)
+      recent.shift();
+
+    if (!show)
+      return;
+    lastShown = now;
+    showStatus(Math.round(now - started) + " ms  " + recent.length + " decisions/s  " + (result.model || "") +
+               (useShield ? "\nshield overrides: " + overridden + "/" + answered : "") +
+               "\n" + tacticMix() +
+               "\n" + lines.join("\n"));
+  }
+
   async function pump() {
     if (busy || !latestState || !provider || performance.now() < pausedUntil)
       return;
@@ -335,42 +555,7 @@
     busy = true;
     const started = performance.now();
     try {
-      const result = await provider.decide({ state, questions: provider.buildQuestions(state) });
-      const now = performance.now();
-
-      if (!setOrder)
-        setOrder = Module.cwrap("jev_set_order", null, ["number", "number", "number"]);
-
-      const lines = [];
-      for (const [id, answer] of Object.entries(result.answers || {})) {
-        let choice = answer.choice;
-        let note = answer.because && answer.because !== choice ? "  (" + answer.because + ")" : "";
-        answered++;
-        if (useShield && shielded(state, id) && choice !== "retreat") {
-          note = "  (shield: " + choice + ")";
-          choice = "retreat";
-          overridden++;
-        }
-        const confidence = answer.confidence ?? 1;
-        const confident = confidence >= (provider.minConfidence[choice] ?? 0);
-        if (ORDERS[choice] !== undefined && confident) {
-          setOrder(Number(id.slice(1)), ORDERS[choice], ORDER_TTL);
-          tactics.push(choice);
-          if (tactics.length > 300)
-            tactics.shift();
-        }
-        const kind = state.enemies[id] ? state.enemies[id].kind.slice(0, 6) : "";
-        lines.push(id.padEnd(10) + " " + kind.padEnd(6) + " " + String(choice).padEnd(9) + " " + confidence.toFixed(2) +
-                   (confident ? "" : "  (ignored)") + note);
-      }
-
-      recent.push(now);
-      while (recent.length && recent[0] < now - 1000)
-        recent.shift();
-      showStatus(Math.round(now - started) + " ms  " + recent.length + " decisions/s  " + (result.model || "") +
-                 (useShield ? "\nshield overrides: " + overridden + "/" + answered : "") +
-                 "\n" + tacticMix() +
-                 "\n" + lines.join("\n"));
+      applyAnswers(state, await provider.decide({ state, questions: provider.buildQuestions(state) }), started);
     } catch (error) {
       // The badguys simply fall back to their regular behaviour.
       pausedUntil = performance.now() + BACKOFF_MS;
@@ -394,12 +579,32 @@
       if (options & OPT_RICH)
         return;
     }
+
+    let state;
     try {
-      latestState = JSON.parse(json);
+      state = JSON.parse(json);
     } catch (error) {
       showStatus("bad state: " + error.message);
       return;
     }
+
+    // Turbo (tools/eval) plays hundreds of logic steps between browser
+    // frames. A promise would only settle once the whole batch is over, so
+    // every state but the last would be dropped; a table can answer here and
+    // now, while the game is waiting.
+    if (provider && window.jev_inline && provider.decideSync) {
+      const started = performance.now();
+      // tools/rl puts its learner in place of the table while training.
+      const decide = window.jev_decide_override || provider.decideSync;
+      try {
+        applyAnswers(state, decide({ state, questions: provider.buildQuestions(state) }), started);
+      } catch (error) {
+        showStatus("error: " + error.message);
+      }
+      return;
+    }
+
+    latestState = state;
     pump();
   };
 

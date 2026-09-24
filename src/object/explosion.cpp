@@ -26,6 +26,7 @@
 #include "object/particles.hpp"
 #include "object/player.hpp"
 #include "object/weak_block.hpp"
+#include "port/jev_bridge.hpp"
 #include "supertux/sector.hpp"
 #include "sprite/sprite.hpp"
 #include "sprite/sprite_manager.hpp"
@@ -43,6 +44,8 @@ Explosion::Explosion(const Vector& pos, float p_push_strength,
                                                  "images/objects/lightmap_light/lightmap_light-large.sprite")),
   m_color(1.f, 0.5f, 0.2f, 0.f),
   m_fading_timer(),
+  m_jev_source(),
+  m_jev_reported(false),
   short_fuse(p_short_fuse)
 {
   set_pos(get_pos() - (m_col.m_bbox.get_middle() - get_pos()));
@@ -62,6 +65,8 @@ Explosion::Explosion(const ReaderMapping& reader) :
   m_lightsprite(nullptr),
   m_color(1.f, 0.5f, 0.2f, 0.f),
   m_fading_timer(),
+  m_jev_source(),
+  m_jev_reported(false),
   short_fuse(false)
 {
   SoundManager::current()->preload(short_fuse ? "sounds/firecracker.ogg" : "sounds/explosion.wav");
@@ -209,6 +214,12 @@ Explosion::collision(MovingObject& other, const CollisionHit& )
 
   auto player = dynamic_cast<Player*>(&other);
   if (player != nullptr && !player->is_stone()) {
+    // The blast touches the player for several frames; report it once.
+    if (!m_jev_source.empty() && !m_jev_reported && player->is_alive() &&
+        !player->is_recovering() && !player->is_invincible()) {
+      m_jev_reported = true;
+      jev_bridge::event("badguy_hit", m_jev_source.c_str());
+    }
     player->kill(false);
   }
 

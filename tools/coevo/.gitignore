@@ -1,0 +1,10 @@
+node_modules/
+state.json
+state-*.json
+stats-*.json
+rows-*.json
+fit-*.json
+results.json
+# Every generation of training; only the distilled Tux is kept.
+tables/*
+!tables/tux-llm.js

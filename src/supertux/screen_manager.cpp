@@ -143,6 +143,7 @@ ScreenManager::ScreenManager(VideoSystem& video_system, InputManager& input_mana
   seconds_per_step(1.0f / LOGICAL_FPS),
   m_fps_statistics(new FPS_Stats()),
   m_speed(1.0),
+  m_turbo(0),
   m_actions(),
   m_screen_fade(),
   m_screen_stack()
@@ -616,8 +617,55 @@ ScreenManager::handle_screen_switch()
   }
 }
 
+void ScreenManager::turbo_iter()
+{
+  // Automated play (tools/eval): play the fixed logic step as fast as the
+  // machine manages, and draw one frame per batch. Both the step and its
+  // dtime are the ones used at normal speed, so the game plays out the same
+  // way, only sooner.
+  if (m_screen_stack.empty())
+    return;
+
+  Integration::update_status_all(m_screen_stack.back()->get_status());
+  Integration::update_all();
+
+  for (int i = 0; i < m_turbo; ++i)
+  {
+    g_game_time += seconds_per_step;
+    g_real_time += seconds_per_step;
+    process_events();
+    update_gamelogic(seconds_per_step);
+
+    // A screen is waiting to be pushed or popped, which happens between steps
+    // at normal speed too.
+    if (!m_actions.empty() || m_screen_stack.empty())
+      break;
+  }
+
+  if (!m_screen_stack.empty())
+  {
+    Compositor compositor(m_video_system, 0.0f);
+    draw(compositor, *m_fps_statistics);
+    m_fps_statistics->report_frame();
+  }
+
+  SoundManager::current()->update();
+  handle_screen_switch();
+
+  // Plenty of real time passed while those steps ran; do not let the normal
+  // path try to catch up on it once turbo is turned off.
+  last_time = std::chrono::steady_clock::now();
+  elapsed_time = 0.f;
+}
+
 void ScreenManager::loop_iter()
 {
+  if (m_turbo > 0)
+  {
+    turbo_iter();
+    return;
+  }
+
   auto now = std::chrono::steady_clock::now();
   auto nsecs = std::chrono::duration_cast<std::chrono::nanoseconds>(now - last_time).count();
   elapsed_time += 1e-9f * static_cast<float>(nsecs);

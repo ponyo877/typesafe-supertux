@@ -1,0 +1,7 @@
+node_modules/
+q.json
+q-v1.json
+stats-*.json
+rows-*.json
+fit-*.json
+snapshots/

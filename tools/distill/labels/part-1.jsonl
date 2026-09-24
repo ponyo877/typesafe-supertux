@@ -1,0 +1,304 @@
+{"id": 0, "order": "stalk", "why": "follow him at a distance"}
+{"id": 1, "order": "ambush", "why": "he is coming, wait for him"}
+{"id": 2, "order": "charge", "why": "pinch him with ally beyond"}
+{"id": 3, "order": "stalk", "why": "follow him at a distance"}
+{"id": 4, "order": "charge", "why": "pinch him with ally beyond"}
+{"id": 5, "order": "ambush", "why": "he is coming, wait for him"}
+{"id": 6, "order": "charge", "why": "pinch him with ally beyond"}
+{"id": 7, "order": "stalk", "why": "follow him at a distance"}
+{"id": 8, "order": "charge", "why": "pinch him with ally beyond"}
+{"id": 9, "order": "hold", "why": "closer ally takes him first"}
+{"id": 10, "order": "stalk", "why": "follow him at a distance"}
+{"id": 11, "order": "stalk", "why": "follow him at a distance"}
+{"id": 12, "order": "charge", "why": "pinch him with ally beyond"}
+{"id": 13, "order": "ambush", "why": "he is coming, wait for him"}
+{"id": 14, "order": "ambush", "why": "he walks into me, ally behind him"}
+{"id": 15, "order": "ambush", "why": "he is coming, wait for him"}
+{"id": 16, "order": "hold", "why": "far, hop in place until he arrives"}
+{"id": 17, "order": "charge", "why": "pinch him with ally beyond"}
+{"id": 18, "order": "hold", "why": "closer ally takes him first"}
+{"id": 19, "order": "stalk", "why": "follow him at a distance"}
+{"id": 20, "order": "stalk", "why": "he is above, keep distance"}
+{"id": 21, "order": "charge", "why": "hop after him"}
+{"id": 22, "order": "stalk", "why": "join allies without rushing"}
+{"id": 23, "order": "stalk", "why": "join allies without rushing"}
+{"id": 24, "order": "stalk", "why": "follow him at a distance"}
+{"id": 25, "order": "stalk", "why": "he is above, keep distance"}
+{"id": 26, "order": "ambush", "why": "he is coming, wait for him"}
+{"id": 27, "order": "stalk", "why": "follow him at a distance"}
+{"id": 28, "order": "charge", "why": "hop after him"}
+{"id": 29, "order": "charge", "why": "hit him from behind, ally ahead"}
+{"id": 30, "order": "ambush", "why": "blow up when he arrives"}
+{"id": 31, "order": "stalk", "why": "he is above, keep distance"}
+{"id": 32, "order": "charge", "why": "pinch him with ally beyond"}
+{"id": 33, "order": "stalk", "why": "join allies without rushing"}
+{"id": 34, "order": "hold", "why": "closer ally takes him first"}
+{"id": 35, "order": "charge", "why": "hop after him, ally ahead"}
+{"id": 36, "order": "hold", "why": "closer ally takes him first"}
+{"id": 37, "order": "charge", "why": "hop after him, ally ahead"}
+{"id": 38, "order": "stalk", "why": "he is above, keep distance"}
+{"id": 39, "order": "ambush", "why": "he is coming, wait for him"}
+{"id": 41, "order": "charge", "why": "hop after him, ally ahead"}
+{"id": 45, "order": "charge", "why": "chase him from behind"}
+{"id": 49, "order": "ambush", "why": "he is coming, wait for him"}
+{"id": 53, "order": "stalk", "why": "allies engage first"}
+{"id": 57, "order": "ambush", "why": "he is coming, wait for him"}
+{"id": 61, "order": "charge", "why": "hit him as he lands below"}
+{"id": 65, "order": "stalk", "why": "he is above, keep distance"}
+{"id": 69, "order": "stalk", "why": "head-on approach means stomp"}
+{"id": 73, "order": "hold", "why": "ally meets him first"}
+{"id": 77, "order": "charge", "why": "pinch him with ally beyond"}
+{"id": 81, "order": "hold", "why": "wall blocks the way"}
+{"id": 85, "order": "hold", "why": "spikes in front"}
+{"id": 89, "order": "stalk", "why": "he is above, keep distance"}
+{"id": 93, "order": "hold", "why": "spikes in front, too far"}
+{"id": 97, "order": "ambush", "why": "he is coming, wait for him"}
+{"id": 101, "order": "hold", "why": "ally meets him first"}
+{"id": 105, "order": "hold", "why": "wall blocks the way"}
+{"id": 109, "order": "ambush", "why": "he is coming, wait for him"}
+{"id": 113, "order": "ambush", "why": "trap him against ally behind"}
+{"id": 117, "order": "stalk", "why": "allies engage first"}
+{"id": 121, "order": "charge", "why": "hit him from behind on landing"}
+{"id": 125, "order": "hold", "why": "spikes in front"}
+{"id": 129, "order": "ambush", "why": "he is coming, ally behind him"}
+{"id": 133, "order": "hold", "why": "wall blocks the way"}
+{"id": 137, "order": "special", "why": "rush and blow up on him"}
+{"id": 141, "order": "stalk", "why": "he is above, keep distance"}
+{"id": 145, "order": "hold", "why": "spikes in front"}
+{"id": 149, "order": "ambush", "why": "he is coming, wait for him"}
+{"id": 153, "order": "stalk", "why": "follow him at a distance"}
+{"id": 157, "order": "retreat", "why": "he may land on me"}
+{"id": 161, "order": "hold", "why": "wall blocks the way"}
+{"id": 165, "order": "intercept", "why": "meet his landing below me"}
+{"id": 169, "order": "retreat", "why": "he is falling onto me"}
+{"id": 173, "order": "ambush", "why": "he is coming, wait for him"}
+{"id": 177, "order": "intercept", "why": "meet his landing below me"}
+{"id": 181, "order": "hold", "why": "spikes in front"}
+{"id": 185, "order": "stalk", "why": "he is above, keep distance"}
+{"id": 189, "order": "stalk", "why": "follow him at a distance"}
+{"id": 193, "order": "ambush", "why": "blow up when he arrives"}
+{"id": 197, "order": "hold", "why": "allies engage first"}
+{"id": 201, "order": "hold", "why": "allies engage first"}
+{"id": 205, "order": "hold", "why": "allies engage first"}
+{"id": 209, "order": "charge", "why": "hit him from behind on landing"}
+{"id": 213, "order": "hold", "why": "spikes in front"}
+{"id": 217, "order": "hold", "why": "spikes in front"}
+{"id": 221, "order": "hold", "why": "spikes in front"}
+{"id": 225, "order": "jump", "why": "hop the wall to pinch him"}
+{"id": 229, "order": "retreat", "why": "he may land on me"}
+{"id": 233, "order": "hold", "why": "ally takes him first"}
+{"id": 237, "order": "stalk", "why": "follow him at a distance"}
+{"id": 241, "order": "hold", "why": "wall blocks the way"}
+{"id": 245, "order": "special", "why": "come down on his head"}
+{"id": 249, "order": "ambush", "why": "he is coming, ally behind him"}
+{"id": 253, "order": "hold", "why": "wall blocks the way"}
+{"id": 257, "order": "hold", "why": "wall blocks the way"}
+{"id": 261, "order": "ambush", "why": "he is coming, wait for him"}
+{"id": 265, "order": "hold", "why": "wall blocks the way"}
+{"id": 269, "order": "ambush", "why": "blow up when he arrives"}
+{"id": 273, "order": "hold", "why": "wall blocks the way"}
+{"id": 277, "order": "hold", "why": "ally takes him first"}
+{"id": 281, "order": "stalk", "why": "he is above, keep distance"}
+{"id": 285, "order": "hold", "why": "wall blocks the way"}
+{"id": 289, "order": "hold", "why": "ally meets him first"}
+{"id": 293, "order": "hold", "why": "ally takes him first"}
+{"id": 297, "order": "special", "why": "come down on his head"}
+{"id": 301, "order": "hold", "why": "spikes in front, let him come"}
+{"id": 305, "order": "hold", "why": "wall blocks the way"}
+{"id": 309, "order": "hold", "why": "far, he is idle"}
+{"id": 313, "order": "retreat", "why": "he is falling onto me"}
+{"id": 317, "order": "hold", "why": "ally takes him first"}
+{"id": 321, "order": "charge", "why": "pinch him with ally beyond"}
+{"id": 325, "order": "charge", "why": "chase toward ally beyond"}
+{"id": 329, "order": "stalk", "why": "he is above, keep distance"}
+{"id": 333, "order": "stalk", "why": "join allies without rushing"}
+{"id": 337, "order": "intercept", "why": "meet his landing below me"}
+{"id": 341, "order": "hold", "why": "wall blocks the way"}
+{"id": 345, "order": "stalk", "why": "join allies without rushing"}
+{"id": 349, "order": "hold", "why": "wall blocks the way"}
+{"id": 353, "order": "retreat", "why": "he may land on me"}
+{"id": 357, "order": "hold", "why": "spikes in front"}
+{"id": 361, "order": "ambush", "why": "blow up when he arrives"}
+{"id": 365, "order": "stalk", "why": "back off from his landing"}
+{"id": 369, "order": "ambush", "why": "he is coming, wait for him"}
+{"id": 373, "order": "hold", "why": "spikes in front"}
+{"id": 377, "order": "hold", "why": "spikes in front"}
+{"id": 381, "order": "stalk", "why": "join allies without rushing"}
+{"id": 385, "order": "hold", "why": "ally takes him first"}
+{"id": 389, "order": "charge", "why": "hop after him"}
+{"id": 393, "order": "charge", "why": "hit him as he lands away"}
+{"id": 397, "order": "stalk", "why": "he is above, keep distance"}
+{"id": 401, "order": "ambush", "why": "he is coming, wait for him"}
+{"id": 405, "order": "charge", "why": "pinch him with ally beyond"}
+{"id": 409, "order": "special", "why": "chase and blow up near him"}
+{"id": 413, "order": "ambush", "why": "blow up when he arrives"}
+{"id": 417, "order": "charge", "why": "hit him as he lands below"}
+{"id": 421, "order": "special", "why": "blow up now"}
+{"id": 425, "order": "hold", "why": "allies not needed, wait"}
+{"id": 429, "order": "hold", "why": "wall blocks the way"}
+{"id": 433, "order": "hold", "why": "spikes in front"}
+{"id": 437, "order": "ambush", "why": "he is coming, wait for him"}
+{"id": 441, "order": "stalk", "why": "not ready, keep distance"}
+{"id": 445, "order": "hold", "why": "ally meets him first"}
+{"id": 449, "order": "special", "why": "come down on his head"}
+{"id": 453, "order": "hold", "why": "spikes in front"}
+{"id": 457, "order": "hold", "why": "spikes in front"}
+{"id": 461, "order": "stalk", "why": "not ready, keep distance"}
+{"id": 465, "order": "special", "why": "chase and blow up near him"}
+{"id": 469, "order": "retreat", "why": "he is falling onto me"}
+{"id": 473, "order": "stalk", "why": "follow him at a distance"}
+{"id": 477, "order": "special", "why": "chase and blow up near him"}
+{"id": 481, "order": "hold", "why": "spikes in front"}
+{"id": 485, "order": "hold", "why": "spikes in front"}
+{"id": 489, "order": "hold", "why": "ally meets him first"}
+{"id": 493, "order": "hold", "why": "ally takes him first"}
+{"id": 497, "order": "hold", "why": "ally takes him first"}
+{"id": 501, "order": "special", "why": "come down on his head"}
+{"id": 505, "order": "hold", "why": "allies engage first"}
+{"id": 509, "order": "retreat", "why": "he may land on me"}
+{"id": 513, "order": "stalk", "why": "he is above, keep distance"}
+{"id": 517, "order": "retreat", "why": "he lands on me"}
+{"id": 521, "order": "special", "why": "blow up as he comes"}
+{"id": 525, "order": "stalk", "why": "follow him at a distance"}
+{"id": 529, "order": "hold", "why": "spikes in front"}
+{"id": 533, "order": "ambush", "why": "he is coming, wait for him"}
+{"id": 537, "order": "hold", "why": "spikes in front"}
+{"id": 541, "order": "ambush", "why": "he is coming, wait for him"}
+{"id": 545, "order": "hold", "why": "spikes in front"}
+{"id": 549, "order": "intercept", "why": "meet his landing below me"}
+{"id": 553, "order": "ambush", "why": "he is coming, wait for him"}
+{"id": 557, "order": "charge", "why": "pinch him with ally beyond"}
+{"id": 561, "order": "special", "why": "come down on his head"}
+{"id": 565, "order": "retreat", "why": "he may land on me"}
+{"id": 569, "order": "intercept", "why": "meet his landing below me"}
+{"id": 573, "order": "retreat", "why": "he is falling onto me"}
+{"id": 577, "order": "retreat", "why": "he lands right by me"}
+{"id": 581, "order": "hold", "why": "spikes in front"}
+{"id": 585, "order": "stalk", "why": "he is above, keep distance"}
+{"id": 589, "order": "special", "why": "chase and blow up near him"}
+{"id": 593, "order": "hold", "why": "ally takes him first"}
+{"id": 597, "order": "charge", "why": "chase toward ally beyond"}
+{"id": 601, "order": "hold", "why": "spikes in front"}
+{"id": 605, "order": "hold", "why": "spikes in front"}
+{"id": 609, "order": "special", "why": "come down on his head"}
+{"id": 613, "order": "stalk", "why": "back off, he is above"}
+{"id": 617, "order": "hold", "why": "spikes in front"}
+{"id": 621, "order": "special", "why": "chase and blow up near him"}
+{"id": 625, "order": "charge", "why": "pinch him with ally beyond"}
+{"id": 629, "order": "retreat", "why": "he may land on me"}
+{"id": 633, "order": "charge", "why": "pinch him with ally beyond"}
+{"id": 637, "order": "hold", "why": "spikes in front"}
+{"id": 641, "order": "stalk", "why": "join allies without rushing"}
+{"id": 645, "order": "hold", "why": "far, hop in place until he arrives"}
+{"id": 649, "order": "retreat", "why": "he may land on me"}
+{"id": 653, "order": "hold", "why": "wall blocks the way"}
+{"id": 657, "order": "stalk", "why": "not ready, keep distance"}
+{"id": 661, "order": "charge", "why": "pinch him with ally beyond"}
+{"id": 665, "order": "charge", "why": "pinch him with ally beyond"}
+{"id": 669, "order": "hold", "why": "wall blocks the way"}
+{"id": 673, "order": "hold", "why": "ally takes him first"}
+{"id": 677, "order": "special", "why": "leap at him"}
+{"id": 681, "order": "hold", "why": "spikes in front"}
+{"id": 685, "order": "charge", "why": "hit him as he lands below"}
+{"id": 689, "order": "stalk", "why": "ally takes him first"}
+{"id": 693, "order": "special", "why": "roll at him, ally beyond"}
+{"id": 697, "order": "hold", "why": "ally takes him first"}
+{"id": 701, "order": "hold", "why": "wall blocks the way"}
+{"id": 705, "order": "hold", "why": "ally takes him first"}
+{"id": 709, "order": "special", "why": "come down on his head"}
+{"id": 713, "order": "stalk", "why": "he is above, keep distance"}
+{"id": 717, "order": "hold", "why": "spikes in front"}
+{"id": 721, "order": "stalk", "why": "he is above, cannot reach"}
+{"id": 725, "order": "special", "why": "rush and blow up on him"}
+{"id": 729, "order": "hold", "why": "spikes in front"}
+{"id": 733, "order": "special", "why": "blow up before the stomp"}
+{"id": 737, "order": "special", "why": "chase and blow up near him"}
+{"id": 741, "order": "stalk", "why": "not ready, keep distance"}
+{"id": 745, "order": "hold", "why": "spikes in front"}
+{"id": 749, "order": "retreat", "why": "he lands right by me"}
+{"id": 753, "order": "stalk", "why": "he is above, keep distance"}
+{"id": 757, "order": "charge", "why": "pinch him with ally beyond"}
+{"id": 761, "order": "charge", "why": "hit him from behind"}
+{"id": 765, "order": "hold", "why": "spikes in front"}
+{"id": 769, "order": "special", "why": "leap at him as he lands"}
+{"id": 773, "order": "stalk", "why": "follow him at a distance"}
+{"id": 777, "order": "hold", "why": "allies engage first"}
+{"id": 781, "order": "stalk", "why": "not ready, keep distance"}
+{"id": 785, "order": "hold", "why": "spikes in front"}
+{"id": 789, "order": "charge", "why": "pinch him with ally beyond"}
+{"id": 793, "order": "charge", "why": "pinch him with ally beyond"}
+{"id": 797, "order": "hold", "why": "allies engage first"}
+{"id": 801, "order": "charge", "why": "pinch him with ally beyond"}
+{"id": 805, "order": "charge", "why": "pinch him with ally beyond"}
+{"id": 809, "order": "charge", "why": "chase toward ally beyond"}
+{"id": 813, "order": "retreat", "why": "he is falling onto me"}
+{"id": 817, "order": "stalk", "why": "he is above, keep distance"}
+{"id": 821, "order": "hold", "why": "wall blocks the way"}
+{"id": 825, "order": "hold", "why": "spikes in front"}
+{"id": 829, "order": "stalk", "why": "join allies without rushing"}
+{"id": 833, "order": "stalk", "why": "follow him at a distance"}
+{"id": 837, "order": "stalk", "why": "back off, he is above"}
+{"id": 841, "order": "hold", "why": "spikes in front"}
+{"id": 845, "order": "hold", "why": "spikes in front"}
+{"id": 849, "order": "hold", "why": "ally takes him first"}
+{"id": 853, "order": "hold", "why": "wall blocks the way"}
+{"id": 857, "order": "stalk", "why": "not ready, keep distance"}
+{"id": 861, "order": "hold", "why": "ally takes him first"}
+{"id": 865, "order": "special", "why": "blow up now"}
+{"id": 869, "order": "retreat", "why": "he is falling onto me"}
+{"id": 873, "order": "stalk", "why": "too far to roll"}
+{"id": 877, "order": "special", "why": "come down on his head"}
+{"id": 881, "order": "charge", "why": "hop toward him, ally beyond"}
+{"id": 885, "order": "stalk", "why": "he is above, keep distance"}
+{"id": 889, "order": "charge", "why": "pinch him with ally beyond"}
+{"id": 893, "order": "stalk", "why": "join allies without rushing"}
+{"id": 897, "order": "special", "why": "leap at him"}
+{"id": 901, "order": "hold", "why": "spikes in front"}
+{"id": 905, "order": "hold", "why": "allies engage first"}
+{"id": 909, "order": "intercept", "why": "meet his landing below me"}
+{"id": 913, "order": "stalk", "why": "he is above, keep distance"}
+{"id": 917, "order": "hold", "why": "spikes in front"}
+{"id": 921, "order": "ambush", "why": "let him come past spikes"}
+{"id": 925, "order": "hold", "why": "spikes in front"}
+{"id": 929, "order": "hold", "why": "wall blocks the way"}
+{"id": 933, "order": "hold", "why": "spikes in front"}
+{"id": 937, "order": "hold", "why": "wall blocks the way"}
+{"id": 941, "order": "stalk", "why": "he is above, keep distance"}
+{"id": 945, "order": "stalk", "why": "ally takes him first"}
+{"id": 949, "order": "stalk", "why": "not ready, keep distance"}
+{"id": 953, "order": "stalk", "why": "join allies without rushing"}
+{"id": 957, "order": "charge", "why": "pinch him with ally beyond"}
+{"id": 961, "order": "hold", "why": "allies engage first"}
+{"id": 965, "order": "stalk", "why": "he is above, cannot reach"}
+{"id": 969, "order": "special", "why": "leap at him as he lands"}
+{"id": 973, "order": "charge", "why": "chase him from behind"}
+{"id": 977, "order": "retreat", "why": "he may land on me"}
+{"id": 981, "order": "stalk", "why": "he is above, keep distance"}
+{"id": 985, "order": "ambush", "why": "he is coming, wait for him"}
+{"id": 989, "order": "stalk", "why": "he is above, keep distance"}
+{"id": 993, "order": "hold", "why": "spikes in front"}
+{"id": 997, "order": "special", "why": "roll at him, ally beyond"}
+{"id": 1001, "order": "stalk", "why": "too far to roll"}
+{"id": 1005, "order": "stalk", "why": "follow him at a distance"}
+{"id": 1009, "order": "stalk", "why": "too far to roll"}
+{"id": 1013, "order": "retreat", "why": "he is falling onto me"}
+{"id": 1017, "order": "charge", "why": "hit him from the side"}
+{"id": 1021, "order": "retreat", "why": "he may land on me"}
+{"id": 1025, "order": "stalk", "why": "he is above, keep distance"}
+{"id": 1029, "order": "stalk", "why": "he is above, keep distance"}
+{"id": 1033, "order": "hold", "why": "ally takes him first"}
+{"id": 1037, "order": "retreat", "why": "he may land on me"}
+{"id": 1041, "order": "hold", "why": "ally takes him first"}
+{"id": 1045, "order": "hold", "why": "spikes in front"}
+{"id": 1049, "order": "hold", "why": "he is above, allies engage"}
+{"id": 1053, "order": "stalk", "why": "head-on approach means stomp"}
+{"id": 1057, "order": "stalk", "why": "follow him at a distance"}
+{"id": 1061, "order": "stalk", "why": "he is above, cannot reach"}
+{"id": 1065, "order": "hold", "why": "not ready, allies engage"}
+{"id": 1069, "order": "special", "why": "chase and leap at him"}
+{"id": 1073, "order": "retreat", "why": "he is falling onto me"}
+{"id": 1077, "order": "stalk", "why": "too far to roll"}
+{"id": 1081, "order": "hold", "why": "spikes in front"}
+{"id": 1085, "order": "hold", "why": "spikes in front"}
+{"id": 1089, "order": "hold", "why": "ally takes him first"}
+{"id": 1093, "order": "charge", "why": "pinch him with ally beyond"}

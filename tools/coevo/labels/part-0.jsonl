@@ -1,0 +1,77 @@
+{"id": 0, "order": "run", "why": "clear path"}
+{"id": 1, "order": "high jump", "why": "cliff, ledge right above"}
+{"id": 2, "order": "jump", "why": "low wall close"}
+{"id": 3, "order": "run", "why": "clear path"}
+{"id": 4, "order": "back jump", "why": "cliff, ledge behind"}
+{"id": 5, "order": "run", "why": "nothing blocks ahead"}
+{"id": 6, "order": "run", "why": "get out from under badguy"}
+{"id": 7, "order": "high jump", "why": "cliff, ledge right above"}
+{"id": 8, "order": "run", "why": "nothing blocks ahead"}
+{"id": 9, "order": "run", "why": "low wall still far"}
+{"id": 10, "order": "run", "why": "low wall still far"}
+{"id": 11, "order": "run", "why": "low wall still far"}
+{"id": 12, "order": "run", "why": "close in, stomp when near"}
+{"id": 13, "order": "jump", "why": "low wall close, flee badguy"}
+{"id": 14, "order": "jump", "why": "low wall close"}
+{"id": 15, "order": "run", "why": "no wall, keep going"}
+{"id": 16, "order": "jump", "why": "low wall close"}
+{"id": 17, "order": "run", "why": "nothing blocks ahead"}
+{"id": 18, "order": "high jump", "why": "cliff, ledge above, escape"}
+{"id": 19, "order": "run", "why": "nothing blocks ahead"}
+{"id": 20, "order": "jump", "why": "low wall close"}
+{"id": 21, "order": "run", "why": "badguy still medium away"}
+{"id": 22, "order": "back jump", "why": "cliff, ledge behind"}
+{"id": 23, "order": "jump", "why": "stomp approaching badguy"}
+{"id": 24, "order": "long jump", "why": "wide gap close"}
+{"id": 25, "order": "run", "why": "build speed for gap"}
+{"id": 26, "order": "back", "why": "badguy dropping from above"}
+{"id": 27, "order": "run", "why": "get out from under"}
+{"id": 28, "order": "jump", "why": "clear wall, leave drop zone"}
+{"id": 29, "order": "high jump", "why": "cliff, ledge right above"}
+{"id": 30, "order": "back jump", "why": "only way up is behind"}
+{"id": 33, "order": "jump", "why": "low wall close"}
+{"id": 36, "order": "run", "why": "get out from under"}
+{"id": 39, "order": "run", "why": "get out from under"}
+{"id": 42, "order": "run", "why": "get out from under"}
+{"id": 45, "order": "run", "why": "get out from under"}
+{"id": 48, "order": "run", "why": "get out from under"}
+{"id": 51, "order": "jump", "why": "stomp approaching badguy"}
+{"id": 54, "order": "jump", "why": "low wall close"}
+{"id": 57, "order": "run", "why": "leave drop zone, spikes far"}
+{"id": 60, "order": "run", "why": "build speed, flee behind"}
+{"id": 63, "order": "run", "why": "outrun badguy behind"}
+{"id": 66, "order": "walk", "why": "slip out from under"}
+{"id": 69, "order": "jump", "why": "wall and badguy ahead"}
+{"id": 72, "order": "jump", "why": "stomp near badguy"}
+{"id": 75, "order": "run", "why": "leave drop zone, badguy medium"}
+{"id": 78, "order": "jump", "why": "stomp approaching badguy"}
+{"id": 81, "order": "back", "why": "jumpy will land here"}
+{"id": 84, "order": "long jump", "why": "spikes close, bomb coming"}
+{"id": 87, "order": "run", "why": "low wall still far"}
+{"id": 90, "order": "jump", "why": "stomp, leave drop zone"}
+{"id": 93, "order": "jump", "why": "stomp approaching badguy"}
+{"id": 96, "order": "jump", "why": "low wall close"}
+{"id": 99, "order": "run", "why": "badguy still medium away"}
+{"id": 102, "order": "jump", "why": "stomp near badguy"}
+{"id": 105, "order": "run", "why": "outrun badguy behind"}
+{"id": 108, "order": "run", "why": "badguy medium away"}
+{"id": 111, "order": "jump", "why": "badguy touching, escape"}
+{"id": 114, "order": "jump", "why": "low wall and badguy close"}
+{"id": 117, "order": "walk", "why": "slip out from under"}
+{"id": 120, "order": "jump", "why": "badguy touching, jump over"}
+{"id": 123, "order": "jump", "why": "stomp near badguy"}
+{"id": 126, "order": "back", "why": "jumpy landing on Tux"}
+{"id": 129, "order": "long jump", "why": "wide gap close"}
+{"id": 132, "order": "jump", "why": "wall and badguy close"}
+{"id": 135, "order": "jump", "why": "low wall close, leave drop"}
+{"id": 138, "order": "wait", "why": "let badguy come, then stomp"}
+{"id": 141, "order": "jump", "why": "stomp, leave drop zone"}
+{"id": 144, "order": "run", "why": "outrun badguy behind"}
+{"id": 147, "order": "jump", "why": "stomp, leave drop zone"}
+{"id": 150, "order": "run", "why": "outrun badguy behind"}
+{"id": 153, "order": "run", "why": "badguy medium away"}
+{"id": 156, "order": "run", "why": "close in on bomb"}
+{"id": 159, "order": "jump", "why": "wall and badguy close"}
+{"id": 162, "order": "long jump", "why": "cliff ahead, badguy behind"}
+{"id": 165, "order": "run", "why": "outrun badguy behind"}
+{"id": 168, "order": "back", "why": "jumpy coming, avoid landing"}

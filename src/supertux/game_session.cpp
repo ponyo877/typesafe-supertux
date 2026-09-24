@@ -36,6 +36,7 @@
 #include "object/player.hpp"
 #include "object/spawnpoint.hpp"
 #include "object/textscroller.hpp"
+#include "port/jev_bridge.hpp"
 #include "sdk/integration.hpp"
 #include "squirrel/squirrel_virtual_machine.hpp"
 #include "supertux/constants.hpp"
@@ -203,6 +204,8 @@ GameSession::on_player_removed(int id)
 void
 GameSession::restart_level(bool after_death, bool preserve_music)
 {
+  jev_bridge::event("restart", after_death ? "death" : "start");
+
   if (m_savegame)
   {
     const PlayerStatus& currentStatus = m_savegame->get_player_status();
@@ -830,6 +833,7 @@ GameSession::finish(bool win)
   if (m_end_seq_started)
     return;
   m_end_seq_started = true;
+  jev_bridge::event("level_finished", win ? "win" : "lose");
 
   using namespace worldmap;
 

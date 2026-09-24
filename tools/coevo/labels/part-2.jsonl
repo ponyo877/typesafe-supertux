@@ -1,0 +1,76 @@
+{"id": 0, "order": "run", "why": "clear path"}
+{"id": 1, "order": "high jump", "why": "cliff, ledge right above"}
+{"id": 2, "order": "jump", "why": "low wall close"}
+{"id": 3, "order": "run", "why": "clear path"}
+{"id": 4, "order": "back jump", "why": "cliff, ledge behind"}
+{"id": 5, "order": "run", "why": "nothing ahead"}
+{"id": 6, "order": "run", "why": "get out from under badguy"}
+{"id": 7, "order": "high jump", "why": "cliff, ledge right above"}
+{"id": 8, "order": "run", "why": "no obstacle yet"}
+{"id": 9, "order": "run", "why": "low wall still far"}
+{"id": 10, "order": "run", "why": "low wall still far"}
+{"id": 11, "order": "run", "why": "low wall still far"}
+{"id": 12, "order": "walk", "why": "slow down, walker approaching"}
+{"id": 13, "order": "jump", "why": "low wall close, badguy behind"}
+{"id": 14, "order": "jump", "why": "low wall close"}
+{"id": 15, "order": "run", "why": "no wall, keep going"}
+{"id": 16, "order": "jump", "why": "low wall close"}
+{"id": 17, "order": "run", "why": "nothing ahead"}
+{"id": 18, "order": "high jump", "why": "cliff, ledge above, escape behind"}
+{"id": 19, "order": "run", "why": "no obstacle yet"}
+{"id": 20, "order": "jump", "why": "low wall close"}
+{"id": 21, "order": "walk", "why": "approach idle walker carefully"}
+{"id": 22, "order": "back jump", "why": "cliff, ledge behind"}
+{"id": 23, "order": "jump", "why": "stomp incoming walker"}
+{"id": 24, "order": "long jump", "why": "wide gap close"}
+{"id": 25, "order": "run", "why": "gap still far, build speed"}
+{"id": 26, "order": "back", "why": "badguy dropping from above"}
+{"id": 27, "order": "run", "why": "get out from under badguy"}
+{"id": 28, "order": "back", "why": "badguy above, don't jump into it"}
+{"id": 29, "order": "high jump", "why": "cliff, ledge right above"}
+{"id": 32, "order": "run", "why": "low wall still far"}
+{"id": 35, "order": "long jump", "why": "wide gap close"}
+{"id": 38, "order": "run", "why": "gap still far, build speed"}
+{"id": 41, "order": "run", "why": "get out from under badguy"}
+{"id": 44, "order": "jump", "why": "stomp walker near"}
+{"id": 47, "order": "long jump", "why": "spikes close"}
+{"id": 50, "order": "jump", "why": "trapped, escape over wall"}
+{"id": 53, "order": "jump", "why": "low wall close"}
+{"id": 56, "order": "back", "why": "keep clear of jumpy landing"}
+{"id": 59, "order": "run", "why": "escape above and behind"}
+{"id": 62, "order": "long jump", "why": "wide gap close"}
+{"id": 65, "order": "jump", "why": "walker touching, jump over"}
+{"id": 68, "order": "back", "why": "keep clear of jumpy landing"}
+{"id": 71, "order": "jump", "why": "stomp walker, clear wall"}
+{"id": 74, "order": "high jump", "why": "cliff, ledge above, escape behind"}
+{"id": 77, "order": "jump", "why": "low wall close"}
+{"id": 80, "order": "walk", "why": "walker approaching, time stomp"}
+{"id": 83, "order": "wait", "why": "let jumpy land first"}
+{"id": 86, "order": "back", "why": "badguy dropping from above"}
+{"id": 89, "order": "run", "why": "outrun badguy behind"}
+{"id": 92, "order": "back", "why": "badguy above, don't jump into it"}
+{"id": 95, "order": "long jump", "why": "wide gap close"}
+{"id": 98, "order": "run", "why": "escape above and behind"}
+{"id": 101, "order": "jump", "why": "low wall close"}
+{"id": 104, "order": "jump", "why": "stomp incoming walker"}
+{"id": 107, "order": "run", "why": "outrun badguy behind"}
+{"id": 110, "order": "jump", "why": "low wall close"}
+{"id": 113, "order": "long jump", "why": "spikes close"}
+{"id": 116, "order": "jump", "why": "stomp walker, clear wall"}
+{"id": 119, "order": "run", "why": "escape above and behind"}
+{"id": 122, "order": "jump", "why": "stomp incoming walker"}
+{"id": 125, "order": "back", "why": "jumpy coming, keep clear"}
+{"id": 128, "order": "long jump", "why": "over bomb and gap"}
+{"id": 131, "order": "jump", "why": "stomp walker, clear wall"}
+{"id": 134, "order": "jump", "why": "low wall close"}
+{"id": 137, "order": "jump", "why": "stomp walker near"}
+{"id": 140, "order": "run", "why": "outrun badguy behind"}
+{"id": 143, "order": "run", "why": "gap far, outrun badguy"}
+{"id": 146, "order": "jump", "why": "stomp incoming walker"}
+{"id": 149, "order": "jump", "why": "stomp walker, escape"}
+{"id": 152, "order": "run", "why": "get out from under badguy"}
+{"id": 155, "order": "walk", "why": "walker approaching, time stomp"}
+{"id": 158, "order": "walk", "why": "approach idle walker carefully"}
+{"id": 161, "order": "jump", "why": "low wall close, escape above"}
+{"id": 164, "order": "jump", "why": "stomp incoming walker"}
+{"id": 167, "order": "jump", "why": "walker touching, stomp"}

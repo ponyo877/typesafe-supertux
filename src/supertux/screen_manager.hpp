@@ -63,10 +63,17 @@ public:
 
   void loop_iter();
 
+  /** Plays this many logic steps per iteration, as fast as the machine
+      manages, instead of keeping up with real time. The step stays the same,
+      so the game behaves exactly as it does at normal speed. 0 (the default)
+      plays in real time; the benchmark in tools/eval sets it higher. */
+  inline void set_turbo(int steps) { m_turbo = steps; }
+
   inline const std::vector<std::unique_ptr<Screen>>& get_screen_stack() { return m_screen_stack; }
 
 private:
   struct FPS_Stats;
+  void turbo_iter();
   void draw_fps(DrawingContext& context, FPS_Stats& fps_statistics);
   void draw_player_pos(DrawingContext& context);
   void draw(Compositor& compositor, FPS_Stats& fps_statistics);
@@ -88,6 +95,7 @@ private:
   std::unique_ptr<FPS_Stats> m_fps_statistics;
 
   float m_speed;
+  int m_turbo;
   struct Action
   {
     enum Type { PUSH_ACTION, POP_ACTION, QUIT_ACTION };

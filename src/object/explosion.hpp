@@ -31,6 +31,11 @@ public:
   Explosion(const Vector& pos, float push_strength, int num_particles=100, bool short_fuse = false);
   Explosion(const ReaderMapping& reader);
 
+  /** Says which badguy blew up ("<class>:<uid>", see
+      BadGuy::jev_event_detail()), so the benchmark and the training in
+      tools/rl can credit it when the blast hurts the player. */
+  inline void set_jev_source(const std::string& source) { m_jev_source = source; }
+
   static std::string class_name() { return "explosion"; }
   virtual std::string get_class_name() const override { return class_name(); }
   static std::string display_name() { return _("Explosion"); }
@@ -64,6 +69,8 @@ private:
   SpritePtr m_lightsprite;
   Color m_color;
   Timer m_fading_timer;
+  std::string m_jev_source;
+  bool m_jev_reported;
   bool short_fuse;
 
 private:

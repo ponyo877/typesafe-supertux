@@ -1,0 +1,9 @@
+{
+  "name": "supertux-eval",
+  "private": true,
+  "type": "module",
+  "description": "Benchmark for the enemy AI modes of the web build (see bench.mjs)",
+  "dependencies": {
+    "playwright": "1.63.0"
+  }
+}

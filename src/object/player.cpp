@@ -38,6 +38,7 @@
 #include "object/particles.hpp"
 #include "object/portable.hpp"
 #include "object/sprite_particle.hpp"
+#include "port/jev_bridge.hpp"
 #include "sprite/sprite.hpp"
 #include "sprite/sprite_manager.hpp"
 #include "supertux/constants.hpp"
@@ -2552,6 +2553,7 @@ Player::kill(bool completely)
 
   if (!completely && is_big()) {
     SoundManager::current()->play("sounds/hurt.wav", get_pos());
+    jev_bridge::event("player_hurt");
     m_reset_action = true;
 
     if (get_bonus() > BONUS_GROWUP)
@@ -2577,6 +2579,7 @@ Player::kill(bool completely)
     }
 
     SoundManager::current()->play("sounds/kill.wav", get_pos());
+    jev_bridge::event("player_death");
 
     if (m_stone) stop_rolling(false);
 

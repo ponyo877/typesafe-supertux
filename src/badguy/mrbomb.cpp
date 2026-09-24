@@ -230,7 +230,7 @@ MrBomb::explode()
 {
   remove_me();
   Sector::get().add<Explosion>(m_col.m_bbox.get_middle(),
-    EXPLOSION_STRENGTH_DEFAULT);
+    EXPLOSION_STRENGTH_DEFAULT).set_jev_source(jev_event_detail());
   run_dead_script();
 }
 
