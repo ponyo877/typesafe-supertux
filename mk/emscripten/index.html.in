@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="An unofficial one-level version of SuperTux, played in the browser, with the original enemies or with enemies steered by the Laya decision model.">
+  <meta name="description" content="An unofficial one-level version of SuperTux, played in the browser, with the original enemies or with enemies trained by reinforcement learning.">
   <link rel="icon" href="supertux2.ico?v=@SUPERTUX_VERSION_STRING@">
   <title>SuperTux: Shallow Green</title>
   <style>
@@ -16,8 +16,8 @@
       --card-edge: #ffffff1f;
       --classic: #e9eef8;
       --classic-text: #141a33;
-      --laya: #ffcc4d;
-      --laya-text: #2a1c00;
+      --trained: #ffcc4d;
+      --trained-text: #2a1c00;
       --link: #8cf;
     }
 
@@ -147,9 +147,9 @@
       color: var(--classic-text);
     }
 
-    .laya .start {
-      background: var(--laya);
-      color: var(--laya-text);
+    .trained .start {
+      background: var(--trained);
+      color: var(--trained-text);
     }
 
     .hint {
@@ -206,24 +206,26 @@
         <p>The level as it was made, with the original enemies.</p>
         <a class="start" href="play.html?ai=off">START</a>
       </section>
-      <section class="mode laya">
-        <h2>Laya AI <span class="tag">precomputed</span></h2>
-        <p>Each enemy picks its tactic from the Laya model&rsquo;s answers, precomputed for every situation in the level:
-          it ambushes you, cuts you off, attacks from both sides and dodges your stomps.</p>
-        <a class="start" href="play.html?ai=laya-rich">START</a>
+      <section class="mode trained">
+        <h2>Trained AI <span class="tag">self-play</span></h2>
+        <p>These enemies learned from hundreds of hours of simulated play against a Tux that kept learning too.
+          Each one sees where it is in the level, how you move and what its allies are doing, and picks its tactic:
+          it waits for you, cuts you off, flanks you or backs off from your stomps.</p>
+        <a class="start" href="play.html?ai=coevo4">START</a>
       </section>
     </div>
 
-    <p class="hint"><kbd>&larr;</kbd> <kbd>&rarr;</kbd> move, <kbd>Space</kbd> jump, <kbd>Esc</kbd> menu. The first start downloads about 310&nbsp;MB.</p>
+    <p class="hint"><kbd>&larr;</kbd> <kbd>&rarr;</kbd> move, <kbd>Space</kbd> jump, <kbd>Esc</kbd> menu. The first start downloads about 340&nbsp;MB; later starts load it from your browser.</p>
   </main>
 
   <footer>
     <p>SuperTux &copy; 2003&ndash;2026 SuperTux Devel Team. This is an unofficial version, modified in 2026 by ponyo877
-      (one level, enemies steered by a decision model). It comes with ABSOLUTELY NO WARRANTY. It is free software, and you
+      (one level, enemies trained by reinforcement learning). It comes with ABSOLUTELY NO WARRANTY. It is free software, and you
       are welcome to redistribute it under the GNU General Public License version 3:
       <a href="LICENSE.txt">license</a>, <a href="https://github.com/ponyo877/typesafe-supertux">source code</a>.</p>
     <p>Level &ldquo;Shallow Green&rdquo; by Carsten Wirtz and music &ldquo;Forest Midday&rdquo; by SnugglyBun and Marek Moeckel, both
-      <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>. Enemy decisions precomputed with Laya by
+      <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>. The enemies&rsquo; first tactics were
+      labeled by Claude (Anthropic), then learned by playing; earlier modes used answers precomputed with Laya by
       Convai Innovations (Apache 2.0). <a href="credits.html">Full credits and licenses</a>.</p>
   </footer>
 </body>

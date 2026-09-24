@@ -94,8 +94,8 @@
       It is not made or endorsed by the SuperTux Devel Team. The changes:</p>
     <ul>
       <li>It starts directly in the level &ldquo;Shallow Green&rdquo; and starts over instead of returning to a menu.</li>
-      <li>In the &ldquo;Laya AI&rdquo; mode, the enemies follow decisions of the Laya model: they ambush, intercept,
-        keep their distance, attack from both sides, use special moves, keep chasing and dodge stomps.</li>
+      <li>In the &ldquo;Trained AI&rdquo; mode, the enemies follow tactics learned by reinforcement learning: they ambush,
+        intercept, keep their distance, attack from both sides, use special moves, keep chasing and dodge stomps.</li>
       <li>The text is always English, and content under a non-commercial license is left out (see below).</li>
     </ul>
     <p>The complete source code of this version, including the tools that built it, is at
@@ -119,7 +119,12 @@
     </ul>
 
     <h2>Enemy decisions</h2>
-    <p>The &ldquo;Laya AI&rdquo; enemies act on answers of <strong>Laya</strong> by Convai Innovations and contributors
+    <p>The &ldquo;Trained AI&rdquo; enemies follow a table of tactics, one for every situation they can be in. It was
+      first filled with tactics labeled by <strong>Claude</strong> (Anthropic) for the situations met in play, then
+      improved by reinforcement learning: the enemies played against bots and against a Tux that learned as well, in
+      turns, and kept what worked. Tools and data are in the source code (<code>tools/distill</code>,
+      <code>tools/rl</code>, <code>tools/coevo</code>).</p>
+    <p>The earlier &ldquo;Laya AI&rdquo; mode (still at <code>play.html?ai=laya-rich</code>) acts on answers of <strong>Laya</strong> by Convai Innovations and contributors
       (<a href="https://github.com/NandhaKishorM/laya">github.com/NandhaKishorM/laya</a>, Apache License 2.0), run with
       <strong>laya-mlx</strong> by mizorewww (<a href="https://github.com/mizorewww/laya-mlx">github.com/mizorewww/laya-mlx</a>,
       Apache License 2.0). The answers to every question the game can ask were computed in advance; the model itself
