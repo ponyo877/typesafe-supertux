@@ -23,7 +23,8 @@
 #
 # Needs `wrangler login` and, once, `wrangler r2 bucket create laya-supertux`,
 # `wrangler d1 create supertux-stats` (its id goes into wrangler.jsonc) and
-# `wrangler d1 execute supertux-stats --remote --file tools/web/cloudflare/schema.sql`.
+# `wrangler d1 execute supertux-stats --remote --file tools/web/cloudflare/schema.sql`
+# and `openssl rand -hex 32 | wrangler secret put STATS_SECRET`.
 # The data parts are uploaded under their content hash before the Worker is
 # deployed, so the site switches to the new build in one step. Parts of older
 # builds stay in the bucket until deleted.

@@ -23,11 +23,14 @@
 //
 // The game reports what happens through window.jev_on_event (see
 // src/port/jev_bridge.cpp). Every start of the level is an attempt (there
-// are no checkpoints in this version); a death is sent with where it
-// happened. The server (tools/web/cloudflare/worker.js, or
-// tools/jev-proxy/server.mjs locally) keeps only counts: per mode, and per
-// tile for the deaths. Automated play (tools/eval, tools/rl, tools/coevo)
-// runs in this page too but is not counted.
+// are no checkpoints in this version) and asks the server for a token; a
+// death or a clear is sent with that token and the path Tux took since the
+// start, which the server checks before counting it
+// (tools/web/cloudflare/plays.js, verify.js). The server
+// (tools/web/cloudflare/worker.js, or tools/jev-proxy/server.mjs locally)
+// keeps only counts: per mode, and per tile for the deaths. Automated play
+// (tools/eval, tools/rl, tools/coevo) runs in this page too but is not
+// counted.
 
 (function () {
   "use strict";
@@ -66,13 +69,31 @@
   }
   window.addEventListener("DOMContentLoaded", () => document.body.appendChild(box));
 
-  function send(kind, x, y) {
-    if (!counting())
-      return;
-    const event = kind === "death" ? { mode, kind, x: Math.round(x), y: Math.round(y) } : { mode, kind };
-    const body = JSON.stringify(event);
-    if (!(navigator.sendBeacon && navigator.sendBeacon("api/stats", new Blob([body], { type: "application/json" }))))
-      fetch("api/stats", { method: "POST", body, keepalive: true }).catch(() => {});
+  let token = null;  // a promise of this attempt's token
+
+  function startAttempt() {
+    token = fetch("api/session", { method: "POST", body: JSON.stringify({ mode }) })
+      .then((response) => response.ok ? response.json() : null)
+      .then((answer) => answer && answer.token)
+      .catch(() => null);
+  }
+
+  /** Sends a death or a clear with this attempt's path; true if it counted. */
+  async function report(kind, at) {
+    if (!token || typeof Module === "undefined" || !Module._jev_take_trajectory)
+      return false;
+    const path = JSON.parse(Module.UTF8ToString(Module._jev_take_trajectory()));
+    const attempt = await token;
+    if (!attempt)
+      return false;
+    const body = JSON.stringify({ token: attempt, kind, path, at });
+    try {
+      const response = await fetch("api/stats", { method: "POST", body, keepalive: body.length < 60000,
+                                                  headers: { "Content-Type": "application/json" } });
+      return response.ok;
+    } catch (error) {
+      return false;
+    }
   }
 
   // --- the marks ------------------------------------------------------------
@@ -151,17 +172,25 @@
         const e = JSON.parse(json);
         if (e.type === "restart") {
           pending.attempts++;
-          send("attempt");
+          startAttempt();
         } else if (e.type === "player_death") {
-          pending.deaths++;
-          send("death", e.x, e.y);
           const key = `${Math.floor(e.x / tile)} ${Math.floor(e.y / tile)}`;
-          marks.set(key, (marks.get(key) || 0) + 1);
-          marksShown = false;
-          showMarks();
+          report("death", [Math.round(e.x), Math.round(e.y)]).then((counted) => {
+            if (!counted)
+              return;
+            pending.deaths++;
+            marks.set(key, (marks.get(key) || 0) + 1);
+            marksShown = false;
+            showMarks();
+            show();
+          });
         } else if (e.type === "level_finished" && e.detail === "win") {
-          pending.clears++;
-          send("clear");
+          report("clear", null).then((counted) => {
+            if (counted) {
+              pending.clears++;
+              show();
+            }
+          });
         }
         show();
       } catch (error) {

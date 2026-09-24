@@ -60,15 +60,18 @@ jev_predict_landing_x(const Player& player, float ground_y)
 
 #ifdef __EMSCRIPTEN__
 
+#include <array>
 #include <sstream>
 #include <vector>
 
 #include <emscripten.h>
 
 #include "badguy/badguy.hpp"
+#include "control/controller.hpp"
 #include "badguy/walking_badguy.hpp"
 #include "object/bullet.hpp"
 #include "object/camera.hpp"
+#include "object/tilemap.hpp"
 #include "supertux/game_session.hpp"
 #include "supertux/gameconfig.hpp"
 #include "supertux/globals.hpp"
@@ -387,6 +390,18 @@ bool s_death_marks_placed = false;
 const char* const DEATH_ICON = "images/engine/death-mark.png";
 bool s_death_icon_written = false;
 
+/** The player's path in this attempt, for the server to check a death or a
+    clear against it (tools/web/cloudflare/verify.js): every TRAJECTORY_STEP
+    of game time, [t in ms, x, y, vx, vy, flags], x and y being the middle of
+    the player and flags 1 on the ground, then the held controls from 2 up
+    (left, right, up, down, jump, action). */
+const float TRAJECTORY_STEP = 0.1f;
+const size_t TRAJECTORY_MAX = 9000;  // 15 minutes
+std::vector<std::array<int, 6>> s_trajectory;
+float s_trajectory_time = 0.f;
+float s_trajectory_next = 0.f;
+std::string s_trajectory_json;
+
 /** What the page asked for the on-screen buttons: -1 nothing, 0 off, 1 on. */
 int s_mobile_controls = -1;
 
@@ -471,6 +486,64 @@ jev_death_icon_written()
 {
   s_death_icon_written = true;
   s_death_marks_placed = false;  // the marks object is made anew and loads it
+}
+
+/** The path of this attempt so far, as JSON (see s_trajectory). */
+EMSCRIPTEN_KEEPALIVE
+const char*
+jev_take_trajectory()
+{
+  std::ostringstream out;
+  out << "[";
+  for (size_t i = 0; i < s_trajectory.size(); ++i)
+  {
+    const auto& p = s_trajectory[i];
+    out << (i ? ",[" : "[") << p[0] << "," << p[1] << "," << p[2] << "," << p[3] << "," << p[4] << "," << p[5] << "]";
+  }
+  out << "]";
+  s_trajectory_json = out.str();
+  return s_trajectory_json.c_str();
+}
+
+/** The level's tiles as the server needs them to check paths
+    (tools/web/level-map.mjs): one hex digit per tile, row by row, with bit 1
+    solid, 2 slope or one-way (solid only in part), 4 hurting. */
+EMSCRIPTEN_KEEPALIVE
+const char*
+jev_dump_level_map()
+{
+  static std::string json;
+  if (!Sector::current())
+    return "";
+  int width = 0, height = 0;
+  for (const TileMap* map : Sector::current()->get_solid_tilemaps())
+  {
+    width = std::max(width, map->get_width());
+    height = std::max(height, map->get_height());
+  }
+  std::vector<int> cells(static_cast<size_t>(width * height), 0);
+  for (const TileMap* map : Sector::current()->get_solid_tilemaps())
+  {
+    if (!map->is_solid())
+      continue;
+    for (int y = 0; y < map->get_height(); ++y)
+      for (int x = 0; x < map->get_width(); ++x)
+      {
+        const Tile& tile = map->get_tile(x, y);
+        int code = 0;
+        if (tile.is_slope() || tile.is_unisolid()) code |= 2;
+        else if (tile.is_solid()) code |= 1;
+        if (tile.get_attributes() & Tile::HURTS) code |= 4;
+        cells[static_cast<size_t>(y * width + x)] |= code;
+      }
+  }
+  std::ostringstream out;
+  out << "{\"width\":" << width << ",\"height\":" << height << ",\"tile\":32,\"cells\":\"";
+  for (int code : cells)
+    out << "0123456789abcdef"[code & 15];
+  out << "\"}";
+  json = out.str();
+  return json.c_str();
 }
 
 /** Called by the page with where players died: `count` triples of x, y and
@@ -635,6 +708,25 @@ tick(Sector& sector, float dt_sec)
       const bool on_ground = players.front()->on_ground();
       if (on_ground && !s_player_was_on_ground)
         s_player_landed_at = g_game_time;
+
+      s_trajectory_time += dt_sec;
+      if (s_trajectory_time >= s_trajectory_next && s_trajectory.size() < TRAJECTORY_MAX)
+      {
+        s_trajectory_next += TRAJECTORY_STEP;
+        const Player& player = *players.front();
+        const Controller& controller = player.get_controller();
+        int flags = on_ground ? 1 : 0;
+        const Control controls[] = { Control::LEFT, Control::RIGHT, Control::UP, Control::DOWN,
+                                     Control::JUMP, Control::ACTION };
+        for (int i = 0; i < 6; ++i)
+          if (controller.hold(controls[i]))
+            flags |= 2 << i;
+        const Vector middle = player.get_bbox().get_middle();
+        s_trajectory.push_back({ static_cast<int>(std::lround(s_trajectory_time * 1000.f)),
+                                 static_cast<int>(std::lround(middle.x)), static_cast<int>(std::lround(middle.y)),
+                                 static_cast<int>(std::lround(player.get_velocity_x())),
+                                 static_cast<int>(std::lround(player.get_velocity_y())), flags });
+      }
       if (!on_ground && s_player_was_on_ground && players.front()->get_velocity_y() < 0.f)
         s_player_takeoffs.push_back(g_game_time);
       while (!s_player_takeoffs.empty() && g_game_time - s_player_takeoffs.front() > HOPPING_WINDOW)
@@ -793,7 +885,12 @@ void
 event(const char* type, const char* detail)
 {
   if (std::string(type) == "restart")
+  {
     s_death_marks_placed = false;  // the level is loaded anew
+    s_trajectory.clear();          // and a new attempt begins
+    s_trajectory_time = 0.f;
+    s_trajectory_next = 0.f;
+  }
 
   // Where the player is says how far this life got; the state deliberately
   // carries no coordinates, but a benchmark needs them.

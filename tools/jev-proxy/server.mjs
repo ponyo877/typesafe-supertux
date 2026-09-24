@@ -26,10 +26,12 @@
 // newer.
 
 import { createReadStream } from "node:fs";
-import { stat } from "node:fs/promises";
+import { randomBytes } from "node:crypto";
+import { readFile, stat } from "node:fs/promises";
 import { createServer } from "node:http";
 import { extname, join, normalize, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
+import { MAX_BODY as MAX_REPORT, MODES, checkReport, makeToken } from "../web/cloudflare/plays.js";
 
 const HOST = "127.0.0.1"; // local play only; the key pays for every request
 const PORT = Number(process.env.PORT || 8765);
@@ -175,27 +177,60 @@ async function serveFile(req, res) {
   createReadStream(file).pipe(res);
 }
 
-// /api/stats as tools/web/cloudflare/worker.js answers it, kept in memory
-// (it starts empty every time), for trying mk/emscripten/stats.js locally.
+// /api/session and /api/stats as tools/web/cloudflare/worker.js answers
+// them, with the same checks (plays.js), kept in memory (it starts empty
+// every time), for trying mk/emscripten/stats.js locally. Reports that do
+// not count are logged with why.
+const statsSecret = randomBytes(32).toString("hex");
 const statsCounts = new Map();   // "mode kind" -> n
 const statsDeaths = new Map();   // "mode tx ty" -> n
+const statsUsed = new Set();     // "id kind"
+const levelMap = JSON.parse(await readFile(join(repo, "tools", "web", "cloudflare", "level-map.json"), "utf8"));
+const count = (map, key) => map.set(key, (map.get(key) || 0) + 1);
+
+async function readBody(req) {
+  let body = "";
+  for await (const chunk of req) {
+    body += chunk;
+    if (body.length > MAX_REPORT) return null;
+  }
+  return body;
+}
+
+async function localSession(req, res) {
+  if (req.method !== "POST")
+    return send(res, 405, "method not allowed");
+  let mode;
+  try { mode = JSON.parse(await readBody(req)).mode; } catch { return send(res, 400, "bad JSON"); }
+  if (!MODES.has(mode))
+    return send(res, 400, "bad mode");
+  count(statsCounts, `${mode} attempt`);
+  res.writeHead(200, { "Content-Type": "application/json" });
+  res.end(JSON.stringify({ token: await makeToken(statsSecret, mode) }));
+}
+
 async function localStats(req, res) {
   const url = new URL(req.url, "http://localhost");
   if (req.method === "POST") {
-    let body = "";
-    for await (const chunk of req) body += chunk;
-    let event;
-    try { event = JSON.parse(body); } catch { return send(res, 400, "bad JSON"); }
-    const { mode, kind, x, y } = event || {};
-    if (typeof mode !== "string" || !["attempt", "death", "clear"].includes(kind))
-      return send(res, 400, "bad event");
-    statsCounts.set(`${mode} ${kind}`, (statsCounts.get(`${mode} ${kind}`) || 0) + 1);
-    if (kind === "death" && Number.isFinite(x) && Number.isFinite(y)) {
-      const key = `${mode} ${Math.floor(x / 32)} ${Math.floor(y / 32)}`;
-      statsDeaths.set(key, (statsDeaths.get(key) || 0) + 1);
+    const body = await readBody(req);
+    if (body === null)
+      return send(res, 413, "too large");
+    const report = await checkReport(statsSecret, levelMap, body);
+    const answer = (status, value) => {
+      res.writeHead(status, { "Content-Type": "application/json" });
+      res.end(JSON.stringify(value));
+    };
+    if (!report.ok) {
+      console.log(`stats: not counted (${report.reason})`);
+      return answer(422, { counted: false, reason: report.reason });
     }
-    res.writeHead(204);
-    return res.end();
+    if (statsUsed.has(`${report.id} ${report.kind}`))
+      return answer(409, { counted: false, reason: "used" });
+    statsUsed.add(`${report.id} ${report.kind}`);
+    count(statsCounts, `${report.mode} ${report.kind}`);
+    if (report.kind === "death")
+      count(statsDeaths, `${report.mode} ${Math.floor(report.x / 32)} ${Math.floor(report.y / 32)}`);
+    return answer(200, { counted: true });
   }
   const mode = url.searchParams.get("mode");
   const marks = [...statsDeaths].map(([key, n]) => key.split(" ")).filter(([m]) => m === mode)
@@ -208,6 +243,7 @@ async function localStats(req, res) {
 
 createServer((req, res) => {
   const handler = req.url.startsWith("/api/stats") ? localStats
+                : req.url === "/api/session" ? localSession
                 : (req.method === "POST" && req.url === "/api/jev") ? relayJev
                 : (req.method === "POST" && req.url === "/api/laya") ? relayLaya
                 : (req.method === "GET" || req.method === "HEAD") ? serveFile

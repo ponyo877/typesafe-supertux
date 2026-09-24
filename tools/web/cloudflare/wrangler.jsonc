@@ -17,6 +17,12 @@
   "d1_databases": [
     { "binding": "STATS", "database_name": "supertux-stats", "database_id": "f9dacd35-d5fc-4e47-bc1b-54911f707657" }
   ],
+  // Keeps each address to so many plays reported a minute (worker.js).
+  "ratelimits": [
+    { "name": "LIMITER", "namespace_id": "1001", "simple": { "limit": 40, "period": 60 } }
+  ],
+  // The secret that signs the tokens, STATS_SECRET, is set once with
+  // `wrangler secret put STATS_SECRET` (plays.js).
   "vars": {
     // Set by tools/web/deploy.sh: which data package the build uses.
     "DATA_VERSION": "",

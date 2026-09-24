@@ -22,12 +22,17 @@
 // this code.
 //
 // It also keeps everyone's attempts, deaths and clears per mode, and how
-// often players died on each tile, in D1 (schema.sql): /api/stats, used by
-// mk/emscripten/stats.js. Only these counts are kept: no single play, no
-// address, nothing about who played.
+// often players died on each tile, in D1 (schema.sql): /api/session and
+// /api/stats, used by mk/emscripten/stats.js. A death or a clear counts only
+// with the path that led to it, checked by plays.js and verify.js. Only
+// counts are kept, and the tokens already used (as hashes, until they
+// expire): no single play, no address, nothing about who played. The
+// Workers rate limiter keeps each address from sending too much; it counts
+// requests for a minute and keeps nothing here.
 
-const MODES = new Set(["off", "coevo4", "coevo3", "coevo2", "coevo", "rl2", "rl", "llm", "laya-rich", "laya"]);
-const KINDS = new Set(["attempt", "death", "clear"]);
+import levelMap from "./level-map.json";
+import { MAX_BODY, MODES, checkReport, makeToken } from "./plays.js";
+
 const TILE = 32;
 const MARKS = 2000;  // the tiles with the most deaths that are sent back
 
@@ -35,30 +40,64 @@ const json = (body, init = {}) => new Response(JSON.stringify(body), {
   ...init, headers: { "Content-Type": "application/json", ...(init.headers || {}) },
 });
 
+async function limited(request, env) {
+  if (!env.LIMITER)
+    return false;
+  const { success } = await env.LIMITER.limit({ key: request.headers.get("CF-Connecting-IP") || "?" });
+  return !success;
+}
+
+/** A token for a new attempt, which counts it. */
+async function session(request, env) {
+  if (request.method !== "POST")
+    return new Response("Method not allowed", { status: 405, headers: { Allow: "POST" } });
+  if (await limited(request, env))
+    return new Response("Too many", { status: 429 });
+  const text = await request.text();
+  let mode;
+  try { mode = JSON.parse(text).mode; } catch { return new Response("Bad JSON", { status: 400 }); }
+  if (!MODES.has(mode))
+    return new Response("Bad mode", { status: 400 });
+  await env.STATS.prepare("INSERT INTO counts (mode, kind, n) VALUES (?1, 'attempt', 1) " +
+                          "ON CONFLICT (mode, kind) DO UPDATE SET n = n + 1").bind(mode).run();
+  return json({ token: await makeToken(env.STATS_SECRET, mode) });
+}
+
 async function stats(request, env, ctx) {
   const url = new URL(request.url);
   if (request.method === "POST") {
+    if (await limited(request, env))
+      return new Response("Too many", { status: 429 });
     const text = await request.text();
-    if (text.length > 200)
+    if (text.length > MAX_BODY)
       return new Response("Too large", { status: 413 });
-    let event;
-    try { event = JSON.parse(text); } catch { return new Response("Bad JSON", { status: 400 }); }
-    const { mode, kind, x, y } = event || {};
-    if (!MODES.has(mode) || !KINDS.has(kind))
-      return new Response("Bad event", { status: 400 });
+    const report = await checkReport(env.STATS_SECRET, levelMap, text);
+    if (!report.ok) {
+      // Why reports fail, counted, to see whether real plays ever do.
+      if (report.mode)
+        await env.STATS.prepare("INSERT INTO rejected (mode, reason, n) VALUES (?1, ?2, 1) " +
+                                "ON CONFLICT (mode, reason) DO UPDATE SET n = n + 1").bind(report.mode, report.reason).run();
+      return json({ counted: false, reason: report.reason }, { status: 422 });
+    }
+    const now = Date.now();
+    // Each token counts once for a death and once for a clear.
+    const used = await env.STATS.prepare("INSERT INTO used (id, kind, expires) VALUES (?1, ?2, ?3) " +
+                                         "ON CONFLICT (id, kind) DO NOTHING").bind(report.id, report.kind, report.expires).run();
+    if (!used.meta.changes)
+      return json({ counted: false, reason: "used" }, { status: 409 });
     const statements = [
       env.STATS.prepare("INSERT INTO counts (mode, kind, n) VALUES (?1, ?2, 1) " +
-                        "ON CONFLICT (mode, kind) DO UPDATE SET n = n + 1").bind(mode, kind),
+                        "ON CONFLICT (mode, kind) DO UPDATE SET n = n + 1").bind(report.mode, report.kind),
     ];
-    if (kind === "death") {
-      if (!Number.isFinite(x) || !Number.isFinite(y) || x < 0 || x > 20000 || y < -200 || y > 2000)
-        return new Response("Bad position", { status: 400 });
+    if (report.kind === "death")
       statements.push(env.STATS.prepare(
         "INSERT INTO deaths (mode, tx, ty, n) VALUES (?1, ?2, ?3, 1) " +
-        "ON CONFLICT (mode, tx, ty) DO UPDATE SET n = n + 1").bind(mode, Math.floor(x / TILE), Math.floor(y / TILE)));
-    }
+        "ON CONFLICT (mode, tx, ty) DO UPDATE SET n = n + 1")
+        .bind(report.mode, Math.floor(report.x / TILE), Math.floor(report.y / TILE)));
     await env.STATS.batch(statements);
-    return new Response(null, { status: 204 });
+    if (Math.random() < 0.02)
+      ctx.waitUntil(env.STATS.prepare("DELETE FROM used WHERE expires < ?1").bind(now).run());
+    return json({ counted: true });
   }
   if (request.method !== "GET")
     return new Response("Method not allowed", { status: 405, headers: { Allow: "GET, POST" } });
@@ -90,6 +129,8 @@ export default {
     const url = new URL(request.url);
     if (url.pathname === "/api/stats")
       return stats(request, env, ctx);
+    if (url.pathname === "/api/session")
+      return session(request, env);
     if (url.pathname !== "/supertux2.data")
       return new Response("Not found", { status: 404 });
     if (request.method !== "GET" && request.method !== "HEAD")
