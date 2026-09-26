@@ -45,7 +45,8 @@
 // makes no progress for a while ("stuck", terrain the bot cannot handle) or
 // takes too long ("slow").
 //
-// Page parameters: ?seed=<n> for the random numbers, ?bots=a,b,c for the
+// Page parameters: ?seed=<n> for the random numbers (?gameseed=<n> for the
+// game's own, the same at every start of the level), ?bots=a,b,c for the
 // styles to draw from (default: rusher,stomper,cautious), ?lag=1 to react
 // late, ?sections=<json>
 // (a section may set its own time limit in "seconds").
@@ -344,8 +345,13 @@
     const e = JSON.parse(json);
     // Every start of the level, after a death or a restart asked for, begins
     // the next run.
-    if (e.type === "restart") phase = "placing";
-    else if (e.type === "player_death") endLife("death");
+    // Let go of everything: after a death the level starts over with the
+    // keys as they were, which would make that run unlike the others.
+    if (e.type === "restart") { phase = "placing"; send(0); }
+    // Start over at once rather than wait for the game to after a death:
+    // that way leaves some of the level as it was, so the next run would
+    // play out unlike one started afresh (tools/coevo/search.js's).
+    else if (e.type === "player_death") { endLife("death"); restart(); }
     else if (e.type === "level_finished") endLife(e.detail === "win" ? "goal" : "lost");
     else if (!life) return;
     else if (e.type === "player_hurt") life.hurts++;
@@ -373,6 +379,10 @@
       };
     }
     window.jev_inline = true;
+    // ?gameseed=<n>: every start of the level draws the same random numbers
+    // (tools/coevo/search.js finds its sequences that way).
+    if (params.has("gameseed"))
+      Module.ccall("jev_set_bench_seed", null, ["number"], [Number(params.get("gameseed"))]);
     Module.ccall("jev_set_bench", null, ["number"], [BENCH_INTERVAL]);
     Module.ccall("jev_set_turbo", null, ["number"], [turbo]);
     restart();

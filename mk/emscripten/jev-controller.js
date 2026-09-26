@@ -450,6 +450,16 @@
     },
   };
 
+  // Any badguy table of co-evolution, for tools/coevo to play against:
+  // ?ai=table&table=<name> loads <name>-table.js next to this script and
+  // plays it as coevo4 is played (?shield=1 for tables that did not learn
+  // when to retreat).
+  if (params.get("ai") === "table" && params.get("table")) {
+    const name = params.get("table");
+    providers.table = { ...providers.coevo4, decide: lookUpPolicy(name), decideSync: lookUpPolicy(name), table: name,
+                        shield: params.get("shield") === "1" };
+  }
+
   // Without ?ai= the badguys behave as usual (the start page picks the mode).
   const providerName = params.get("ai") || "off";
   const provider = providers[providerName];
@@ -568,6 +578,43 @@
     pump();
   }
 
+  // ?noise=<p>, for tools/coevo only: now and then a badguy does something
+  // else for a while (10 decisions, half a second), so that a learned Tux
+  // cannot count on every badguy doing exactly what it did before. The
+  // numbers come from a seed set at every start of the level
+  // (window.jev_noise_seed, called by tools/coevo/search.js), so the same
+  // seed plays out the same way.
+  const noise = Number(params.get("noise") || 0);
+  const NOISE_ORDERS = ["charge", "retreat", "hold", "jump", "ambush", "intercept", "stalk", "flank", "special"];
+  const NOISE_STICK = 10;
+  let noiseState = 1;
+  const noisy = new Map();  // id -> [order, decisions left]
+  function noiseRandom() {
+    noiseState = (noiseState + 0x6d2b79f5) >>> 0;
+    let t = noiseState;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  }
+  window.jev_noise_seed = function (seed) {
+    noiseState = seed >>> 0;
+    noisy.clear();
+  };
+  function addNoise(result) {
+    if (!noise || !result || !result.answers)
+      return result;
+    for (const [id, answer] of Object.entries(result.answers)) {
+      let n = noisy.get(id);
+      if (!n && noiseRandom() < noise)
+        noisy.set(id, n = [NOISE_ORDERS[Math.floor(noiseRandom() * NOISE_ORDERS.length)], NOISE_STICK]);
+      if (n) {
+        result.answers[id] = { ...answer, choice: n[0], confidence: 1 };
+        if (--n[1] <= 0) noisy.delete(id);
+      }
+    }
+    return result;
+  }
+
   window.jev_on_state = function (json) {
     // The runtime is surely up once the game sends a state.
     if (!configured && provider) {
@@ -597,7 +644,7 @@
       // tools/rl puts its learner in place of the table while training.
       const decide = window.jev_decide_override || provider.decideSync;
       try {
-        applyAnswers(state, decide({ state, questions: provider.buildQuestions(state) }), started);
+        applyAnswers(state, addNoise(decide({ state, questions: provider.buildQuestions(state) })), started);
       } catch (error) {
         showStatus("error: " + error.message);
       }

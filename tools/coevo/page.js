@@ -42,6 +42,7 @@
   const ENEMY_HORIZON = 3, ENEMY_HALF_LIFE = 1;
   const PLAYER_HORIZON = 4, PLAYER_HALF_LIFE = 2;
   const SECTION_LENGTH = 1200;  // px of progress worth +1
+  const HALF_LOOK = 0.015;      // half of bot.js's time between looks
 
   let seed = 1;
   function random() {
@@ -117,6 +118,7 @@
     life.run = run;
     move = null;
     lastX = null;
+    lastInput = 0;
     badguys.clear();
   };
 
@@ -210,10 +212,19 @@
   let lastX = null;
   let nextCount = 0;
 
+  // A Tux table with finer facts (player-facts.js's EXTRA_FACTS: which part
+  // of the level he is in, how far the nearest badguy is) keeps the plain
+  // table and what differs, as the badguys'.
+  function playerIndex(b) {
+    return PlayerFacts.extendedIndex(b, player.extra || 0);
+  }
+
   function chooseMove(index) {
+    const plain = () => player.delta && player.delta.has(index) ? player.delta.get(index)
+                      : lookUp(player.bytes, player.extra ? Math.floor(index / player.extSize) : index);
     if (!player.training)
-      return lookUp(player.bytes, index);
-    let choice = player.greedy && player.greedy.has(index) ? player.greedy.get(index) : lookUp(player.bytes, index);
+      return plain();
+    let choice = player.greedy && player.greedy.has(index) ? player.greedy.get(index) : plain();
     if (random() < player.epsilon) {
       const choices = (player.explore && player.explore.get(index)) || PlayerFacts.MOVES.map((_, i) => i);
       choice = choices[Math.floor(random() * choices.length)];
@@ -238,11 +249,12 @@
       lastX = lastX === null ? b.x : Math.max(lastX, b.x);
     }
 
-    const done = !move || (move.jumping ? (time > move.landBy || (b.ground && time > move.start + 0.15))
-                                        : time >= move.until);
+    // Times are sums of looks; half a look either way keeps the rounding
+    // of those sums from deciding (page.js and search.js alike).
+    const done = !move || (move.jumping ? (time > move.landBy + HALF_LOOK || (b.ground && time > move.start + 0.15 + HALF_LOOK))
+                                        : time >= move.until - HALF_LOOK);
     if (done) {
-      const f = PlayerFacts.facts(b);
-      const index = PlayerFacts.index(f);
+      const index = playerIndex(b);
       if (countSituations) situations[index] = (situations[index] || 0) + 1;
       const choice = chooseMove(index);
       const spec = PlayerFacts.MOVES[choice];
@@ -258,7 +270,7 @@
       if (!move.released) {
         move.released = true;
         move.jumpUntil += 0.03;
-      } else if (time < move.jumpUntil) {
+      } else if (time < move.jumpUntil - HALF_LOOK) {
         input |= 16;
       }
     }

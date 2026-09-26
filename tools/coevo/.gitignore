@@ -8,3 +8,8 @@ results.json
 # Every generation of training; only the distilled Tux is kept.
 tables/*
 !tables/tux-llm.js
+# The Tux that cleared the level in the videos, and the champions of the
+# league (league.mjs) against each other.
+!tables/tux-dagger5.js
+!tables/tux-h15.js
+!tables/enemy-h16.js

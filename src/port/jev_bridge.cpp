@@ -69,6 +69,7 @@ jev_predict_landing_x(const Player& player, float ground_y)
 #include "badguy/badguy.hpp"
 #include "control/controller.hpp"
 #include "badguy/walking_badguy.hpp"
+#include "math/random.hpp"
 #include "object/bullet.hpp"
 #include "object/camera.hpp"
 #include "object/tilemap.hpp"
@@ -402,6 +403,10 @@ float s_trajectory_time = 0.f;
 float s_trajectory_next = 0.f;
 std::string s_trajectory_json;
 
+/** The seed the game's random numbers start from at every start of the
+    level, when automated play asks for one (-1: they go on as usual). */
+int s_bench_seed = -1;
+
 /** What the page asked for the on-screen buttons: -1 nothing, 0 off, 1 on. */
 int s_mobile_controls = -1;
 
@@ -620,6 +625,16 @@ jev_set_bench(float seconds)
   s_time_since_bench = 0.f;
 }
 
+/** Called by automated play (tools/coevo/search.js, tools/eval/bot.js) so
+    that every start of the level plays out the same: the badguys that move
+    at random draw the same numbers each time (seed -1: as usual). */
+EMSCRIPTEN_KEEPALIVE
+void
+jev_set_bench_seed(int seed)
+{
+  s_bench_seed = seed;
+}
+
 /** Called by the benchmark to start the level over, with every badguy back
     in its place, once the current logic step is done. */
 EMSCRIPTEN_KEEPALIVE
@@ -630,8 +645,8 @@ jev_bench_restart()
     GameSession::current()->request_restart();
 }
 
-/** Called by the benchmark to put Tux on the ground at (x, bottom), so each
-    run can start where the part of the level it measures begins. */
+/** Called by the benchmark to put Tux, small, on the ground at (x, bottom),
+    so each run can start where the part of the level it measures begins. */
 EMSCRIPTEN_KEEPALIVE
 void
 jev_bench_warp(float x, float bottom)
@@ -643,6 +658,9 @@ jev_bench_warp(float x, float bottom)
     return;
 
   Player& player = *players.front();
+  // Small, as a player starts every attempt: a restart asked for keeps what
+  // he had picked up, which would make one run unlike the next.
+  player.set_bonus(BONUS_NONE, false, false);
   const Rectf& bbox = player.get_bbox();
   player.set_pos(Vector(x - bbox.get_width() / 2.f, bottom - bbox.get_height() - 1.f));
   player.get_physic().set_velocity(0.f, 0.f);
@@ -890,6 +908,25 @@ event(const char* type, const char* detail)
     s_trajectory.clear();          // and a new attempt begins
     s_trajectory_time = 0.f;
     s_trajectory_next = 0.f;
+    if (s_bench_seed >= 0)
+    {
+      gameRandom.seed(s_bench_seed);
+      // The game's clock is a float: how its sums round depends on how
+      // long the page has been running, and timers compare against it. For
+      // automated play every attempt starts it at zero, before the level
+      // is loaded anew.
+      g_game_time = 0.f;
+    }
+    // Automated play looks at the same logic steps of every attempt, and
+    // the badguys are asked at the same steps, so the same inputs play out
+    // the same way whatever came before.
+    s_time_since_bench = 0.f;
+    s_time_since_send = 0.f;
+    // What the badguys know of the player's landings and jumps is about
+    // this attempt only.
+    s_player_landed_at = -1000.f;
+    s_player_takeoffs.clear();
+    s_player_was_on_ground = true;   // as at the very first start
   }
 
   // Where the player is says how far this life got; the state deliberately

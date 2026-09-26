@@ -102,7 +102,59 @@
     return i;
   }
 
-  const api = { DOMAINS, MOVES, facts, index };
+  const LEVEL_WIDTH = 15200;
+
+  // Finer facts a table may add after those of DOMAINS ("extra", as the
+  // badguys' tables do): each gives the code of its value for a look.
+  const ENEMY_DX = [24, 48, 80, 120, 180, 260];  // px ahead: bands 1..6, 0 = none so close
+  const EXTRA_FACTS = {
+    // Which part of the level Tux is in (so many zones of equal width).
+    zone: (b, values) => Math.min(Math.floor(Math.max(b.x, 0) / (LEVEL_WIDTH / values.length)), values.length - 1),
+    // How far ahead the nearest badguy on about his level is, finer than
+    // "enemy" (touching, near, medium).
+    enemy_dx: (b) => {
+      let nearest = Infinity;
+      for (const [dx, dy] of b.enemies)
+        if (Math.abs(dy) < 64 && dx >= -8 && dx < nearest) nearest = dx;
+      const band = ENEMY_DX.findIndex((limit) => nearest < limit);
+      return band < 0 ? 0 : band + 1;
+    },
+    // Where the nearest badguy within 200 px is: behind, over or under him,
+    // or ahead; near (under 80 px) or not; above, level or below. 0: none.
+    // It tells a badguy about to drop on him from one passing by.
+    threat: (b) => {
+      let best = null;
+      for (const [dx, dy] of b.enemies) {
+        const d = Math.hypot(dx, dy);
+        if (d < 200 && (!best || d < best.d)) best = { dx, dy, d };
+      }
+      if (!best) return 0;
+      const side = best.dx < -24 ? 0 : best.dx <= 24 ? 1 : 2;
+      const near = best.d < 80 ? 0 : 1;
+      const vertical = best.dy < -32 ? 0 : best.dy > 32 ? 2 : 1;
+      return 1 + side * 6 + near * 3 + vertical;
+    },
+  };
+
+  /** The index in a table with finer facts: `extra` is the table's list of
+      [name, values], or a number of zones (the tables that have only
+      those), or 0 for none. */
+  function extendedIndex(b, extra) {
+    const base = index(facts(b));
+    if (!extra)
+      return base;
+    if (typeof extra === "number")
+      extra = [["zone", Array.from({ length: extra }, (_, i) => i)]];
+    let i = base;
+    for (const [name, values] of extra)
+      i = i * values.length + EXTRA_FACTS[name](b, values);
+    return i;
+  }
+
+  /** The index in a table with `zones` zones along the level (0: none). */
+  const zonedIndex = (b, zones) => extendedIndex(b, zones);
+
+  const api = { DOMAINS, MOVES, LEVEL_WIDTH, EXTRA_FACTS, facts, index, extendedIndex, zonedIndex };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.PlayerFacts = api;
 })(this);

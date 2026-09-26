@@ -67,5 +67,81 @@
   "end": 14100,
   "seconds": 150,
   "full": true
+ },
+ "practice": {
+  "wall": [
+   {
+    "x": 112,
+    "bottom": 576,
+    "end": 2650,
+    "seconds": 40
+   },
+   {
+    "x": 1000,
+    "bottom": 800,
+    "end": 2650,
+    "seconds": 25
+   },
+   {
+    "x": 1200,
+    "bottom": 832,
+    "end": 2650,
+    "seconds": 25
+   },
+   {
+    "x": 112,
+    "bottom": 576,
+    "end": 2650,
+    "seconds": 40
+   },
+   {
+    "x": 1400,
+    "bottom": 832,
+    "end": 2650,
+    "seconds": 25
+   },
+   {
+    "x": 1500,
+    "bottom": 832,
+    "end": 2650,
+    "seconds": 25
+   },
+   {
+    "x": 1580,
+    "bottom": 832,
+    "end": 2650,
+    "seconds": 25
+   },
+   {
+    "x": 1630,
+    "bottom": 704,
+    "end": 2650,
+    "seconds": 25
+   },
+   {
+    "x": 1720,
+    "bottom": 576,
+    "end": 2650,
+    "seconds": 25
+   },
+   {
+    "x": 1960,
+    "bottom": 640,
+    "end": 2650,
+    "seconds": 20
+   },
+   {
+    "x": 2100,
+    "bottom": 640,
+    "end": 2650,
+    "seconds": 20
+   },
+   {
+    "x": 1960,
+    "bottom": 640,
+    "end": 2650,
+    "seconds": 20
+   }
+  ]
  }
 }

@@ -28,6 +28,17 @@
 //       the time, the older ones the rest, so neither side can win by
 //       forgetting what beat the older ones. Learning is as in tools/rl
 //       (fit_q.py). Progress is kept in state.json; run it again to go on.
+//   node tools/coevo/coevo.mjs tune --from <tux table> --name <new name> [--practice wall] [--iterations 15]
+//        [--player-minutes 10]
+//       Tux learns on from one of his tables against the champion badguys and
+//       the classic ones, on the sections and, three times as often, on the
+//       practice sections of sections.json (e.g. "wall": the wall at
+//       x = 1904, climbed by the two platforms before it, which Tux never
+//       gets to try otherwise).
+//   node tools/coevo/coevo.mjs enemy --from <badguy table> --name <new> --players <tux>[:weight],bot:<style>,...
+//        [--full] [--iterations 15] [--minutes 10] [--turbo 20]
+//       One badguy table learns on its own against the Tuxes given (as the
+//       badguys learn in `run`), on the whole level only with --full.
 //   node tools/coevo/coevo.mjs eval [--minutes 30] [--full-minutes 120] [--enemies a,b] [--players c,d]
 //       Plays every badguy table against every Tux, on the sections and on
 //       the whole level, and writes the table of clear rates to results.json.
@@ -138,7 +149,10 @@ async function openPages(sectionList, count) {
   const pages = await Promise.all(Array.from({ length: count }, async (_, i) => {
     const page = await browser.newPage({ viewport: { width: 640, height: 360 } });
     page.on("pageerror", (e) => console.error(`[tab ${i}] pageerror`, e.message));
-    await page.goto(`${base}/coevo.html?ai=llm&seed=${200 + i}&lag=1${args["learn-shield"] ? "&shield=0" : ""}` +
+    await page.goto(`${base}/coevo.html?ai=llm&seed=${200 + i}&lag=1&gameseed=${args.gameseed || 1}` +
+                    // Tables that learned when to retreat play without the
+                    // page's shield (page.js keeps it for those that did not).
+                    `${args["learn-shield"] || command === "enemy" ? "&shield=0" : ""}` +
                     `&sections=${encodeURIComponent(JSON.stringify(sectionList))}`);
     await page.waitForFunction(() => document.title.startsWith("SuperTux"), null, { timeout: 300000 });
     await page.waitForTimeout(1000);
@@ -258,7 +272,7 @@ async function learn(pages, { side, state, generation, iterations, name, teacher
   const teacher = await loadTable(teacherInfo.path);
   const teacherCodes = unpack(teacher);
   const teacherEntry = await entry(teacherInfo.name, teacherInfo.path, 1);
-  const opponents = await Promise.all(opponentInfos.map(({ name, path }) => entry(name, path, 1)));
+  const opponents = await Promise.all(opponentInfos.map(({ name, path, weight }) => entry(name, path, weight ?? 1)));
   const statsFile = join(here, `stats-${name}.json`);
   const rowsFile = join(here, `rows-${name}.json`);
   const fitFile = join(here, `fit-${name}.json`);
@@ -530,6 +544,44 @@ if (command === "collect") {
     console.log(`  champions: ${state.champions.enemy.name}, ${state.champions.player.name}`);
   }
   await browser.close();
+} else if (command === "enemy") {
+  // One badguy table learns on its own against the Tuxes given, e.g. the
+  // learned Tux of dagger.mjs that gets through the whole level:
+  //   --from enemy-g17 --name enemy-h1 --players tux-dagger6:3,bot:rusher,bot:stomper [--full]
+  const state = await loadState();
+  const from = state.enemies.find((e) => e.name === args.from) ||
+               { name: args.from, path: join(tablesDir, `${args.from}.js`) };
+  // "name" or "name:weight"; a name may be "bot:<style>".
+  const players = (args.players || "").split(",").filter(Boolean).map((spec) => {
+    const parts = spec.split(":");
+    const weight = /^[0-9.]+$/.test(parts.at(-1)) && parts.length > 1 ? Number(parts.pop()) : 1;
+    const name = parts.join(":");
+    return { name, path: name.startsWith("bot:") ? null : join(tablesDir, `${name}.js`), weight };
+  });
+  // --full: only whole runs from the start (where a learned Tux plays as
+  // it learned to); otherwise the sections too.
+  const list = args.full !== undefined ? [sections.full] : [...sections.train, sections.full];
+  const { pages } = await openPages(list, tabs);
+  const enemy = await learn(pages, { side: "enemy", state, generation: state.generation + 1,
+                                     iterations: Number(args.iterations || 15), name: args.name, teacherInfo: from,
+                                     opponentInfos: players, pfsp: false });
+  state.enemies.push(enemy);
+  await writeFile(stateFile, JSON.stringify(state, null, 1));
+  console.log(`wrote ${enemy.path}`);
+  process.exit(0);
+} else if (command === "tune") {
+  const state = await loadState();
+  const from = state.players.find((p) => p.name === args.from);
+  const practice = sections.practice[args.practice || "wall"];
+  const list = [...practice, ...sections.train, ...practice, ...practice];
+  const { browser, pages } = await openPages(list, tabs);
+  const tux = await learn(pages, { side: "player", state, generation: state.generation + 1,
+                                   iterations: Number(args.iterations || 15), name: args.name, teacherInfo: from,
+                                   opponentInfos: [{ name: "classic", path: null }, state.champions.enemy], pfsp: false });
+  await browser.close();
+  state.players.push(tux);
+  await writeFile(stateFile, JSON.stringify(state, null, 1));
+  console.log(`wrote ${tux.path}`);
 } else if (command === "eval") {
   const state = await loadState();
   // --enemies a,b and --players c,d play only those (all by default).
