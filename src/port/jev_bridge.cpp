@@ -913,9 +913,11 @@ event(const char* type, const char* detail)
       gameRandom.seed(s_bench_seed);
       // The game's clock is a float: how its sums round depends on how
       // long the page has been running, and timers compare against it. For
-      // automated play every attempt starts it at zero, before the level
-      // is loaded anew.
-      g_game_time = 0.f;
+      // automated play every attempt starts it at the same time, before the
+      // level is loaded anew. Not at zero: sprites take a clock of zero for
+      // "not started" (Sprite::update) and would lose the time before they
+      // are first drawn, which depends on how often frames are drawn.
+      g_game_time = 1.f;
     }
     // Automated play looks at the same logic steps of every attempt, and
     // the badguys are asked at the same steps, so the same inputs play out

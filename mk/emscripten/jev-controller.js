@@ -403,6 +403,21 @@
       decideSync: lookUpPolicy("coevo4"),
     },
 
+    // The champion of the co-evolution with a Tux that learned to get
+    // through the whole level (tools/coevo/league.mjs, enemy-h16): it
+    // learned against that Tux, against him starting late and against
+    // badguys that now and then do something else.
+    coevo5: {
+      sendInterval: 0.05,
+      options: richOptions,
+      minConfidence: {},
+      buildQuestions: () => ({}),
+      shield: false,
+      decide: lookUpPolicy("coevo5"),
+      table: "coevo5",
+      decideSync: lookUpPolicy("coevo5"),
+    },
+
     // Laya running on this Mac's GPU through laya-mlx (tools/laya-server),
     // e.g. to try a changed prompt before exporting the table; ?prompt=rich
     // for the rich one. It answers in ~20 ms, so it could take a fresh state

@@ -60,17 +60,17 @@ public:
   void set_action(const Direction& dir, int loops = -1);
 
   /** Set number of animation cycles until animation stops */
-  inline void set_animation_loops(int loops = -1) { m_animation_loops = loops; }
+  inline void set_animation_loops(int loops = -1) { update(); m_animation_loops = loops; anchor(); }
 
-  inline void set_frame_progress(float frame_progress) { m_frame = frame_progress; }
+  inline void set_frame_progress(float frame_progress) { update(); m_frame = frame_progress; anchor(); }
 
-  inline void set_frame(int frame) { m_frameidx = frame; }
+  inline void set_frame(int frame) { update(); m_frameidx = frame; anchor(); }
 
   /* Stop animation */
-  void stop_animation() { m_animation_loops = 0; }
+  void stop_animation() { update(); m_animation_loops = 0; anchor(); }
 
-  void pause_animation() { m_is_paused = true; }
-  void resume_animation() { m_is_paused = false; }
+  void pause_animation() { update(); m_is_paused = true; anchor(); }
+  void resume_animation() { update(); m_is_paused = false; anchor(); }
 
   /** Check if animation is stopped or not */
   bool animation_done() const;
@@ -79,10 +79,10 @@ public:
   inline int get_frames() const { return static_cast<int>(m_action->surfaces.size()); }
 
   /** Get currently drawn frame */
-  inline int get_current_frame() const { return m_frameidx; }
+  inline int get_current_frame() const { const_cast<Sprite*>(this)->update(); return m_frameidx; }
 
   /** Get current frame progress */
-  inline float get_current_frame_progress() const { return m_frame; }
+  inline float get_current_frame_progress() const { const_cast<Sprite*>(this)->update(); return m_frame; }
 
   /** Get current action name */
   inline const std::string& get_action() const { return m_action->name; }
@@ -128,6 +128,8 @@ public:
 
 private:
   void update();
+  /** Where the animation stands now becomes what update() counts from. */
+  void anchor();
 
   SpriteData& m_data;
 
@@ -137,6 +139,15 @@ private:
   int m_frameidx;
   int m_animation_loops;
   float m_last_ticks;
+  // The animation is a function of the time since these were set (anchor()),
+  // not a sum of the steps between updates: so it stands the same whenever
+  // and however often it is looked at, drawn or asked whether it is done.
+  // The game's logic asks at every step and draws only now and then (as
+  // automated play does, many steps between frames), and a sum would round,
+  // and badguys would see their animations end, differently.
+  float m_anchor_time;
+  float m_anchor_frames;
+  int m_anchor_loops;
   float m_angle;
   float m_alpha;
   Color m_color;

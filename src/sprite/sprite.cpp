@@ -16,6 +16,9 @@
 
 #include "sprite/sprite.hpp"
 
+#include <algorithm>
+#include <cmath>
+
 #include <assert.h>
 
 #include "editor/editor.hpp"
@@ -30,6 +33,9 @@ Sprite::Sprite(SpriteData& newdata) :
   m_frameidx(0),
   m_animation_loops(-1),
   m_last_ticks(),
+  m_anchor_time(),
+  m_anchor_frames(),
+  m_anchor_loops(),
   m_angle(0.0f),
   m_alpha(1.0f),
   m_color(1.0f, 1.0f, 1.0f, 1.0f),
@@ -39,7 +45,7 @@ Sprite::Sprite(SpriteData& newdata) :
 {
   if (!m_action)
     m_action = m_data.actions.begin()->second.get();
-  m_last_ticks = g_game_time;
+  anchor();
 }
 
 Sprite::Sprite(const Sprite& other) :
@@ -48,6 +54,9 @@ Sprite::Sprite(const Sprite& other) :
   m_frameidx(other.m_frameidx),
   m_animation_loops(other.m_animation_loops),
   m_last_ticks(g_game_time),
+  m_anchor_time(g_game_time),
+  m_anchor_frames(static_cast<float>(other.m_frameidx) + other.m_frame),
+  m_anchor_loops(other.m_animation_loops),
   m_angle(0.0f), // FIXME: this can't be right
   m_alpha(1.0f),
   m_color(1.0f, 1.0f, 1.0f, 1.0f),
@@ -111,8 +120,9 @@ Sprite::set_action(const std::string& name, int loops)
   // The action's loops were set to continued; use the ones from the previous action.
   if (loops == LOOPS_CONTINUED)
   {
-    m_action = newaction;
     update();
+    m_action = newaction;
+    anchor();
     return;
   }
 
@@ -127,13 +137,23 @@ Sprite::set_action(const std::string& name, int loops)
   }
 
   m_action = newaction;
-  m_last_ticks = g_game_time;
+  anchor();
 }
 
 bool
 Sprite::animation_done() const
 {
+  const_cast<Sprite*>(this)->update();
   return m_animation_loops == 0;
+}
+
+void
+Sprite::anchor()
+{
+  m_anchor_time = g_game_time;
+  m_anchor_frames = static_cast<float>(m_frameidx) + m_frame;
+  m_anchor_loops = m_animation_loops;
+  m_last_ticks = g_game_time;
 }
 
 void
@@ -145,27 +165,37 @@ Sprite::update()
     return;
   }
 
-  float frame_inc = m_last_ticks > 0.f ? m_action->fps * (g_game_time - m_last_ticks) : 0.f;
+  // Paused, or on a clock that has not started: the animation stays.
+  if (m_is_paused || m_anchor_time <= 0.f) {
+    anchor();
+    return;
+  }
+
+  // Where the animation is: as far as its frames per second take it from
+  // where it was anchored, going back to the loop frame at the end of every
+  // pass, as many passes as it has loops.
+  const float total = m_anchor_frames + m_action->fps * (g_game_time - m_anchor_time);
+  const int frames = get_frames();
+  const int period = frames - (m_action->loop_frame - 1);
+  int idx = static_cast<int>(std::floor(total));
+  const float progress = total - static_cast<float>(idx);
+  int loops = m_anchor_loops;
+  if (idx >= frames && loops != 0 && period > 0) {
+    int passes = (idx - frames) / period + 1;
+    if (loops > 0)
+      passes = std::min(passes, loops);
+    idx -= passes * period;
+    loops -= passes;
+  }
+  m_animation_loops = loops;
   m_last_ticks = g_game_time;
 
-  if (m_is_paused) return;
-
-  m_frame += frame_inc;
-
-  while (m_frame >= 1.0f) {
-    m_frame -= 1.0f;
-    m_frameidx++;
-  }
-
-  while (m_frameidx >= get_frames() && !animation_done()) {
-    // Loop animation.
-    m_frameidx -= get_frames() - (m_action->loop_frame - 1);
-    m_animation_loops--;
-  }
-
-  if (animation_done()) {
+  if (loops == 0) {
     m_frame = 0;
-    m_frameidx = get_frames() - 1;
+    m_frameidx = frames - 1;
+  } else {
+    m_frameidx = std::clamp(idx, 0, frames - 1);
+    m_frame = progress;
   }
 
   assert(m_frameidx < get_frames());
