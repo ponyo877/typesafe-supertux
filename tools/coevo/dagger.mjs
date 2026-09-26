@@ -76,7 +76,9 @@ const parse = (text) => JSON.parse(text.slice(text.indexOf("] = ") + 4, text.las
 const teacher = parse(await readFile(join(tablesDir, `${args.from}.js`), "utf8"));
 // The teacher's finer facts, or 76 zones of 200 px for a table without.
 const table = { packed: teacher.packed, extra: teacher.extra || [["zone", Array.from({ length: 76 }, (_, i) => i)]],
-                delta: { ...(teacher.extra ? teacher.delta : {}) } };
+                delta: { ...(teacher.extra ? teacher.delta : {}) },
+                // --react: moves end early when a badguy comes close (player-facts.js).
+                react: !!(teacher.react || args.react) };
 const zones = table.extra;
 
 async function save() {

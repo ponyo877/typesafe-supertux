@@ -151,10 +151,70 @@
     return i;
   }
 
+  // A table made to react (its "react"): a move ends early when a badguy
+  // comes this close, so Tux decides again at once rather than at the end
+  // of the move (in the air, once the jump key is let go). Decisions are
+  // coarse where nothing happens and fine where something does.
+  const DANGER = 72;        // px from Tux's middle to a badguy's
+  const MIN_MOVE = 0.06;    // s a move lasts at least
+
+  /** Whether the move under way should end now for a table that reacts. */
+  function reacts(b, move, time) {
+    if (!move || time - move.start < MIN_MOVE - 0.015)
+      return false;
+    if (move.jumping && time < move.jumpUntil)
+      return false;
+    return b.enemies.some(([dx, dy]) => Math.hypot(dx, dy) < DANGER);
+  }
+
   /** The index in a table with `zones` zones along the level (0: none). */
   const zonedIndex = (b, zones) => extendedIndex(b, zones);
 
-  const api = { DOMAINS, MOVES, LEVEL_WIDTH, EXTRA_FACTS, facts, index, extendedIndex, zonedIndex };
+  // What a learned model of Tux (tux-model.mjs, fit_tux.py) decides on: the
+  // numbers of the look itself rather than the coarse facts above, so that
+  // it can tell apart what the facts lump together. Far or missing things
+  // are FAR; the three nearest badguys (within 400 px) come last.
+  const FAR = 999;
+  const KIND_CODE = { mrbomb: 1, jumpy: 2 };
+  const FEATURES = ["vx", "vy", "ground", "big", "x", "y", "wall_r", "wall_h", "gap_r", "gap_w", "spikes_r",
+                    "ledge", "ledge_dx", "ledge_dy",
+                    ...[1, 2, 3].flatMap((n) => [`e${n}_dx`, `e${n}_dy`, `e${n}_vx`, `e${n}_vy`, `e${n}_kind`])];
+
+  function features(b) {
+    const far = (v) => (v < 0 ? FAR : v);
+    const out = [b.vx, b.vy, b.ground ? 1 : 0, b.big ? 1 : 0, b.x, b.y, far(b.wall_r), b.wall_h, far(b.gap_r), b.gap_w,
+                 far(b.spikes_r), b.ledge ? 1 : 0, b.ledge ? b.ledge_dx : 0, b.ledge ? b.ledge_dy : 0];
+    const near = b.enemies.map(([dx, dy, vx, vy, kind]) => ({ dx, dy, vx, vy, kind, d: Math.hypot(dx, dy) }))
+      .filter((e) => e.d < 400).sort((a, c) => a.d - c.d);
+    for (let n = 0; n < 3; n++) {
+      const e = near[n];
+      out.push(...(e ? [e.dx, e.dy, e.vx, e.vy || 0, KIND_CODE[e.kind] || 0] : [FAR, FAR, 0, 0, -1]));
+    }
+    return out;
+  }
+
+  /** The move a learned model (as fit_tux.py exports it) makes for a look. */
+  function modelMove(model, b) {
+    const f = features(b);
+    const scores = new Array(model.classes).fill(0);
+    for (let t = 0; t < model.trees.length; t++) {
+      const tree = model.trees[t];
+      // Nodes: [feature, threshold, left, right]; a child (or the root) below
+      // zero is the leaf -child - 1.
+      let node = tree.root;
+      while (node >= 0) {
+        const [feature, threshold, left, right] = tree.nodes[node];
+        node = f[feature] <= threshold ? left : right;
+      }
+      scores[t % model.classes] += tree.leaves[-node - 1];
+    }
+    let best = 0;
+    for (let c = 1; c < scores.length; c++) if (scores[c] > scores[best]) best = c;
+    return model.moves[best];
+  }
+
+  const api = { DOMAINS, MOVES, LEVEL_WIDTH, EXTRA_FACTS, FEATURES, facts, index, extendedIndex, zonedIndex, reacts,
+                features, modelMove };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.PlayerFacts = api;
 })(this);

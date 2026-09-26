@@ -138,7 +138,7 @@ const STATS_SCRIPT = /<script src="stats\.js[^"]*"><\/script>/;
   const tables = {};
   for (const tux of tuxes) {
     const t = parse(await readFile(join(tablesDir, `${tux}.js`), "utf8"));
-    tables[tux] = { packed: t.packed, extra: t.extra, delta: t.delta || {} };
+    tables[tux] = { packed: t.packed, extra: t.extra, delta: t.delta || {}, react: !!t.react };
   }
   const browser = await chromium.launch({ headless: true, channel: "chromium", args: ["--mute-audio"] });
   // A few games at a time: each is a page of a few hundred MB.

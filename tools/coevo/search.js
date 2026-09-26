@@ -78,11 +78,12 @@
     // Times are sums of looks; half a look either way keeps the rounding
     // of those sums from deciding (page.js and search.js alike).
     const done = !move || (move.jumping ? (run.time > move.landBy + HALF_LOOK || (b.ground && run.time > move.start + 0.15 + HALF_LOOK))
-                                        : run.time >= move.until - HALF_LOOK);
+                                        : run.time >= move.until - HALF_LOOK) ||
+                 (run.react && PlayerFacts.reacts(b, move, run.time));
     if (done) {
       if (run.next >= run.moves.length && run.policy) {
         // Past the given moves, the table plays (__search_policy).
-        run.moves.push(run.policy(PlayerFacts.extendedIndex(b, run.zones)));
+        run.moves.push(run.policy(PlayerFacts.extendedIndex(b, run.zones), b));
       }
       if (run.next >= run.moves.length) {
         // A moment for the last move to play out.
@@ -96,7 +97,9 @@
       const choice = run.fixed && run.fixed.has(index) ? run.fixed.get(index) : run.moves[run.next];
       run.next++;
       const spec = PlayerFacts.MOVES[choice];
-      run.pairs.push([index, choice, Math.round(b.x), Math.round(b.y)]);
+      // With the look's numbers too, for a model to learn from (tux-model.mjs).
+      run.pairs.push(run.features ? [index, choice, Math.round(b.x), Math.round(b.y), PlayerFacts.features(b)]
+                                  : [index, choice, Math.round(b.x), Math.round(b.y)]);
       run.move = spec.jump && b.ground
         ? { spec, start: run.time, jumping: true, jumpUntil: run.time + spec.jump, landBy: run.time + LAND_BY,
             released: !(run.lastInput & 16) }
@@ -130,13 +133,17 @@
       seconds are up. How a table does, and where it fails, in the very way
       the sequences were found. */
   window.__search_policy = function (x, bottom, goal, moves, table, turbo, gameSeed, limit) {
+    // A learned model (tux-model.mjs) decides on the look's numbers.
+    if (table.trees)
+      return window.__search_try(x, bottom, goal, moves, 0, turbo, gameSeed, (index, b) => PlayerFacts.modelMove(table, b),
+                                 limit, null, !!table.react);
     const bytes = Uint8Array.from(atob(table.packed), (c) => c.charCodeAt(0));
     const zones = table.extra || 0;  // its finer facts, for PlayerFacts.extendedIndex
     const size = table.extra ? table.extra.reduce((n, [, values]) => n * values.length, 1) : 0;
     const delta = new Map(Object.entries(table.delta || {}).map(([k, v]) => [Number(k), v]));
     const plain = (i) => (bytes[i >> 1] >> ((i & 1) * 4)) & 15;
     const policy = (index) => delta.has(index) ? delta.get(index) : plain(size ? Math.floor(index / size) : index);
-    return window.__search_try(x, bottom, goal, moves, zones, turbo, gameSeed, policy, limit);
+    return window.__search_try(x, bottom, goal, moves, zones, turbo, gameSeed, policy, limit, null, !!table.react);
   };
 
   /** A first attempt that only waits: the page's first one is unlike the
@@ -166,16 +173,18 @@
       moves are done. zones: the finer facts of the table the pairs are
       for (a list as tables keep it, or a number of zones);
       gameSeed: the game's random numbers at the start; fixed: [index, move]
-      pairs to play whatever the moves say. */
+      pairs to play whatever the moves say; react: end moves early when a
+      badguy comes close (PlayerFacts.reacts). */
   window.__search_try = function (x, bottom, goal, moves, zones, turbo, gameSeed, policy = null, limit = 300,
-                                  fixed = null) {
+                                  fixed = null, react = false) {
     window.jev_inline = true;
     // The same random numbers at every start (bot.js's ?gameseed=), in the
     // game and in the badguys' controller (?noise=).
     Module.ccall("jev_set_bench_seed", null, ["number"], [gameSeed]);
     return new Promise((resolve) => {
       run = { x, bottom, goal, moves: [...moves], zones, resolve, time: 0, phase: "restarting", next: 0, move: null,
-              lastInput: 0, pairs: [], maxX: x, topY: 1e9, policy, limit, progressTime: 0, gameSeed,
+              lastInput: 0, pairs: [], maxX: x, topY: 1e9, policy, limit, progressTime: 0, gameSeed, react,
+              features: !!window.__search_features,
               fixed: fixed && new Map(fixed) };
       Module.ccall("jev_set_bench", null, ["number"], [LOOK]);
       Module.ccall("jev_set_turbo", null, ["number"], [turbo]);

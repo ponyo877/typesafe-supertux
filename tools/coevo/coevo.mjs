@@ -195,6 +195,7 @@ async function entry(name, path, weight) {
     // Tables that learned when to retreat do without the shield.
     shield: !table.learned_shield,
     ...(table.extra ? { extra: table.extra, delta: Object.entries(table.delta).map(([k, v]) => [Number(k), v]) } : {}),
+    ...(table.react ? { react: true } : {}),
   };
 }
 

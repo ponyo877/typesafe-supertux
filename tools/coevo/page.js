@@ -252,7 +252,8 @@
     // Times are sums of looks; half a look either way keeps the rounding
     // of those sums from deciding (page.js and search.js alike).
     const done = !move || (move.jumping ? (time > move.landBy + HALF_LOOK || (b.ground && time > move.start + 0.15 + HALF_LOOK))
-                                        : time >= move.until - HALF_LOOK);
+                                        : time >= move.until - HALF_LOOK) ||
+                 (player.react && PlayerFacts.reacts(b, move, time));
     if (done) {
       const index = playerIndex(b);
       if (countSituations) situations[index] = (situations[index] || 0) + 1;

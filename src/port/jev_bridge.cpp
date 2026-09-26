@@ -267,15 +267,22 @@ float probe_ahead(Sector& sector, const Rectf& bbox, float dir, float top, float
   return -1.f;
 }
 
-/** How high the wall starting `d` ahead of the player (to the right) is. */
+/** How high the wall starting `d` ahead of the player (to the right) is:
+    the highest of the columns over the next two tiles, since a step at its
+    foot is not the wall (at x = 1904 in the level, a tile-high step stands
+    before a wall five tiles high). */
 float wall_height(Sector& sector, const Rectf& bbox, float d)
 {
-  const float x = bbox.get_right() + d + 2.f;
-  float height = 0.f;
-  while (height < 8.f * TILE &&
-         !sector.is_free_of_tiles(Rectf(x, bbox.get_bottom() - height - TILE + 2.f, x + 8.f, bbox.get_bottom() - height - 2.f)))
-    height += TILE;
-  return height;
+  float highest = 0.f;
+  for (float x = bbox.get_right() + d + 2.f; x <= bbox.get_right() + d + 2.f * TILE; x += 8.f)
+  {
+    float height = 0.f;
+    while (height < 8.f * TILE &&
+           !sector.is_free_of_tiles(Rectf(x, bbox.get_bottom() - height - TILE + 2.f, x + 8.f, bbox.get_bottom() - height - 2.f)))
+      height += TILE;
+    highest = std::max(highest, height);
+  }
+  return highest;
 }
 
 /** How wide the gap starting `d` ahead of the player (to the right) is. */

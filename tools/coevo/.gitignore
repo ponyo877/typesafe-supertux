@@ -4,6 +4,7 @@ state-*.json
 stats-*.json
 rows-*.json
 fit-*.json
+demos-*.json
 results.json
 # Every generation of training; only the distilled Tux is kept.
 tables/*
@@ -12,5 +13,8 @@ tables/*
 # league (league.mjs) against each other.
 !tables/tux-dagger5.js
 !tables/tux-s1.js
+# Reacting to badguys that come close, as a table and as a learned model.
+!tables/tux-r1.js
+!tables/tux-m1.json
 !tables/tux-h15.js
 !tables/enemy-h16.js
